@@ -27,15 +27,11 @@ win:
     - target: portable
       arch:
         - x64
-  icon: public/brand/icon-512.svg
   verifyUpdateCodeSignature: false # allow self-signed dev cert
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  installerIcon: public/brand/icon-512.svg
-  uninstallerIcon: public/brand/icon-512.svg
-  installerHeaderIcon: public/brand/icon-512.svg
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Enable PMT
