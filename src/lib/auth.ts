@@ -40,5 +40,8 @@ export async function getUserFromRequest(request: NextRequest) {
 }
 
 export function isInternalStaffEmail(email: string) {
-  return email.trim().toLowerCase().endsWith("@e-t.co.za");
+  return email
+    .trim()
+    .toLowerCase()
+    .endsWith("@lighthousemediagroup.com");
 }

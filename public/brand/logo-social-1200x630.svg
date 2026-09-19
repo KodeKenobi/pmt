@@ -13,6 +13,6 @@
   <rect x="94" y="114" width="324" height="324" rx="82" fill="#111827"/>
   <rect x="118" y="138" width="276" height="276" rx="66" stroke="#334155" stroke-width="6"/>
   <path d="M218 188H307C322 188 333 204 326 219L289 291H334C352 291 363 314 350 327L252 432C236 448 210 430 219 409L252 327H191C173 327 163 304 176 291L266 197C274 189 289 182 304 182" fill="url(#mark)"/>
-  <text x="470" y="286" fill="#E2E8F0" font-family="Segoe UI, Arial, sans-serif" font-size="104" font-weight="800" letter-spacing="-1">Enable PMT</text>
+  <text x="470" y="286" fill="#E2E8F0" font-family="Segoe UI, Arial, sans-serif" font-size="104" font-weight="800" letter-spacing="-1">Lighthouse</text>
   <text x="470" y="366" fill="#94A3B8" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="600" letter-spacing="4">PROJECT MANAGEMENT TOOL</text>
 </svg>

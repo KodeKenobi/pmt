@@ -82,20 +82,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email domain for internal staff
-    if (
-      (role === "USER" || role === "SUPER_ADMIN") &&
-      !email.endsWith("@e-t.co.za")
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Internal staff must use @e-t.co.za email addresses. Clients can use any email.",
-        },
-        { status: 400 },
-      );
-    }
-
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
 

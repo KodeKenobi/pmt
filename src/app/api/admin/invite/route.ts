@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (selectedRole !== Role.CLIENT && !isInternalStaffEmail(email)) {
+    if (selectedRole === Role.USER && !isInternalStaffEmail(email)) {
       return NextResponse.json(
         {
           error:
-            "Admin and super admin invites must use @e-t.co.za email addresses",
+            "Staff invites must use @lighthousemediagroup.com email addresses.",
         },
         { status: 400 },
       );

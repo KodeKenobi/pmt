@@ -502,6 +502,12 @@ export default function DashboardPage() {
     isAllTeams,
   ]);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/auth/login");
+    }
+  }, [authLoading, router, user]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] p-6">

@@ -91,6 +91,13 @@ CREATE TABLE IF NOT EXISTS "User" (
   "updatedAt" timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS "UserNotificationPreference" (
+  "userId" uuid PRIMARY KEY REFERENCES "User"(id) ON DELETE CASCADE,
+  preferences text NOT NULL,
+  "createdAt" timestamptz NOT NULL DEFAULT now(),
+  "updatedAt" timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS "Client" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,

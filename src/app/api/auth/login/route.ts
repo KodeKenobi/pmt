@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmail, isInternalStaffEmail } from "@/lib/auth";
+import { getUserByEmail, verifyPassword } from "@/lib/auth";
 import { getUserWithTeamAccess, teamIdsForUser } from "@/lib/access";
 import { createSupabaseAdminClient } from "@/lib/supabase";
 import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
-    const { accessToken, email: rawEmail } = await request.json();
+    const { accessToken, email: rawEmail, password } = await request.json();
 
     let email: string | null = null;
 
@@ -14,7 +14,14 @@ export async function POST(request: NextRequest) {
       email = rawEmail.toLowerCase().trim();
     }
 
-    if (!email) {
+    if (email) {
+      if (typeof password !== "string" || !password) {
+        return NextResponse.json(
+          { error: "Email and password are required" },
+          { status: 400 },
+        );
+      }
+    } else {
       if (!accessToken || typeof accessToken !== "string") {
         return NextResponse.json(
           { error: "Email or access token is required" },
@@ -48,15 +55,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      (user.role === "USER" || user.role === "SUPER_ADMIN") &&
-      !isInternalStaffEmail(email)
-    ) {
+    if (email && !(await verifyPassword(password, user.password))) {
       return NextResponse.json(
-        {
-          error: "Internal staff sign-in requires an @e-t.co.za email address.",
-        },
-        { status: 403 },
+        { error: "Invalid email or password" },
+        { status: 401 },
       );
     }
 

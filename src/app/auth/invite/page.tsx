@@ -205,7 +205,7 @@ function InviteContent() {
           <div className="relative z-10 w-full bg-black/60 backdrop-blur-sm border border-white/12 shadow-xl rounded-2xl p-8">
             <div className="flex items-center gap-3 mb-6 justify-center">
               <div className="text-white text-2xl font-medium">
-                Enable Tech PMT
+                Lighthouse Project Management
               </div>
             </div>
 

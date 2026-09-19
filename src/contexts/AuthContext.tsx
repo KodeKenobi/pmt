@@ -18,7 +18,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   completePasswordlessLogin: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -47,16 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string) => {
+  const login = async (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) {
-      throw new Error("Email is required");
+    if (!normalizedEmail || !password) {
+      throw new Error("Email and password are required");
     }
 
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail }),
+      body: JSON.stringify({ email: normalizedEmail, password }),
     });
 
     if (!response.ok) {

@@ -215,10 +215,11 @@ export async function POST(
   let warning: string | null = null;
 
   if (!target) {
-    if (!isInternalStaffEmail(rawEmail)) {
+    if (selectedRole === Role.USER && !isInternalStaffEmail(rawEmail)) {
       return NextResponse.json(
         {
-          error: "Internal staff invites must use @e-t.co.za email addresses.",
+          error:
+            "Staff invites must use @lighthousemediagroup.com email addresses.",
         },
         { status: 400 },
       );

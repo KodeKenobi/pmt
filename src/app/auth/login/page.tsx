@@ -3,12 +3,13 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Mail, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 function LoginPageContent() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [inviteActivated, setInviteActivated] = useState(false);
@@ -60,7 +61,7 @@ function LoginPageContent() {
     setError("");
     setLoading(true);
     try {
-      await login(email);
+      await login(email, password);
     } catch (error) {
       setError(
         error instanceof Error
@@ -96,7 +97,7 @@ function LoginPageContent() {
           >
             <div className="flex items-center gap-3 mb-6 text-center justify-center">
               <div className="text-white text-2xl font-medium">
-                Enable Tech PMT
+                Lighthouse Project Management
               </div>
             </div>
             {error && (
@@ -127,6 +128,27 @@ function LoginPageContent() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-3 py-3 rounded-lg bg-black/30 text-white placeholder-gray-400 border border-white/12 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500 outline-none transition text-base font-thin"
                     placeholder="you@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm text-gray-200 mb-2 font-thin"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-3 py-3 rounded-lg bg-black/30 text-white placeholder-gray-400 border border-white/12 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500 outline-none transition text-base font-thin"
+                    autoComplete="current-password"
                     required
                   />
                 </div>

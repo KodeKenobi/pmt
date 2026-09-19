@@ -90,6 +90,10 @@ export default function AdminInvitePage() {
             className="w-full border rounded px-3 py-2"
             required
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Admin invites require @lighthousemediagroup.com. Super admins and
+            clients may use any email address.
+          </p>
         </div>
 
         <div>

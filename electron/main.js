@@ -48,7 +48,7 @@ function createMainWindow() {
     height: 900,
     minWidth: 900,
     minHeight: 600,
-    title: "Enable PMT",
+    title: "Lighthouse Project Management",
     icon: ICON_PATH,
     backgroundColor: "#0f172a",
     show: false,
@@ -213,7 +213,7 @@ function createTray() {
     .createFromPath(ICON_PATH)
     .resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  tray.setToolTip("Enable PMT");
+  tray.setToolTip("Lighthouse Project Management");
 
   const menu = Menu.buildFromTemplate([
     { label: "Open", click: () => mainWindow?.show() },

@@ -54,7 +54,7 @@ function getFromName() {
   return (
     process.env.RESEND_FROM_NAME ||
     process.env.SMTP_FROM_NAME ||
-    "Enable Project Management"
+    "Lighthouse Project Management"
   );
 }
 
@@ -218,9 +218,9 @@ export async function sendTestEmail(
   recipientEmail: string,
   recipientName: string,
 ) {
-  const subject = "Enable Project Management email test";
-  const text = `Hi ${recipientName}, this is a test email from Enable Project Management. If you received this, email delivery is working.`;
-  const html = `<p>Hi ${recipientName},</p><p>This is a test email from <strong>Enable Project Management</strong>.</p><p>If you received this, email delivery is working.</p>`;
+  const subject = "Lighthouse Project Management email test";
+  const text = `Hi ${recipientName}, this is a test email from Lighthouse Project Management. If you received this, email delivery is working.`;
+  const html = `<p>Hi ${recipientName},</p><p>This is a test email from <strong>Lighthouse Project Management</strong>.</p><p>If you received this, email delivery is working.</p>`;
 
   try {
     return await sendEmail({
@@ -253,11 +253,11 @@ export async function sendAdminInviteEmail(
   const isClientInvite = inviteAudience === "CLIENT";
   const templateName = isClientInvite ? "invite-client.html" : "invite.html";
   const subject = isClientInvite
-    ? "You have been invited to collaborate in Enable Project Management"
-    : "You've been invited to join Enable Project Management";
+    ? "You have been invited to collaborate in Lighthouse Project Management"
+    : "You've been invited to join Lighthouse Project Management";
   const text = isClientInvite
-    ? `You've been invited to collaborate in Enable Project Management as a client. Visit: ${inviteLink}`
-    : `You've been invited to join Enable Project Management. Visit: ${inviteLink}`;
+    ? `You've been invited to collaborate in Lighthouse Project Management as a client. Visit: ${inviteLink}`
+    : `You've been invited to join Lighthouse Project Management. Visit: ${inviteLink}`;
 
   let htmlContent = await loadTemplate(templateName, {
     RECIPIENT_NAME: recipientName || "",
@@ -267,8 +267,8 @@ export async function sendAdminInviteEmail(
 
   if (!htmlContent) {
     htmlContent = isClientInvite
-      ? `Hi ${recipientName}, you have been invited to collaborate in Enable Project Management as a client. Accept here: ${inviteLink}`
-      : `Hi ${recipientName}, you have been invited to join Enable. Accept here: ${inviteLink}`;
+      ? `Hi ${recipientName}, you have been invited to collaborate in Lighthouse Project Management as a client. Accept here: ${inviteLink}`
+      : `Hi ${recipientName}, you have been invited to join Lighthouse Project Management. Accept here: ${inviteLink}`;
   }
 
   try {
@@ -306,7 +306,7 @@ export async function sendPasswordResetEmail(
   try {
     return await sendEmail({
       to: recipientEmail,
-      subject: "Reset your Enable Project Management password",
+      subject: "Reset your Lighthouse Project Management password",
       html: htmlContent,
       text: `Reset your password: ${resetLink}`,
     });

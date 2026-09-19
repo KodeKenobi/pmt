@@ -1181,7 +1181,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col border-r border-[var(--border)] bg-gradient-to-b from-slate-50/95 to-[var(--sidebar)] dark:border-gray-800 dark:from-[#16161c] dark:to-[#13131a]">
           <div className="h-20 flex items-center gap-2 border-b border-[var(--border)] p-4 dark:border-gray-800">
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Enable Tech Co
+              Lighthouse
               <br />
               <span className="-mt-1 block text-sm font-normal text-gray-500 dark:text-gray-400">
                 Project Management Tool

@@ -1,10 +1,10 @@
 {
   "name": "project-management-tool",
   "version": "0.1.0",
-  "description": "Enable Tech Co Project Management desktop app",
+  "description": "Lighthouse Project Management desktop app",
   "private": true,
   "main": "electron/main.js",
-  "author": "Enable",
+  "author": "Lighthouse",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
