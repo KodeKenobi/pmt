@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Lighthouse Project Management desktop app",
   "private": true,
+  "packageManager": "pnpm@11.10.0",
   "main": "electron/main.js",
   "author": "Lighthouse",
   "scripts": {
@@ -117,19 +118,5 @@
     "tsx": "^4.7.0",
     "typescript": "^5",
     "wait-on": "^9.0.10"
-  },
-  "pnpm": {
-    "overrides": {
-      "@opentelemetry/core": ">=2.8.0",
-      "cookie": ">=0.7.0",
-      "esbuild": ">=0.28.1",
-      "form-data": ">=4.0.6",
-      "hono": ">=4.12.25",
-      "js-yaml": ">=4.2.0",
-      "nodemailer": ">=9.0.1",
-      "postcss": ">=8.5.10",
-      "react-router": ">=6.30.4",
-      "react-router-dom": ">=6.30.4"
-    }
   }
 }

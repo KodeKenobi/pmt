@@ -1,7 +1,19 @@
+overrides:
+  '@opentelemetry/core': '>=2.8.0'
+  cookie: '>=0.7.0'
+  esbuild: '>=0.28.1'
+  form-data: '>=4.0.6'
+  hono: '>=4.12.25'
+  js-yaml: '>=4.2.0'
+  nodemailer: '>=9.0.1'
+  postcss: '>=8.5.10'
+  react-router: '>=6.30.4'
+  react-router-dom: '>=6.30.4'
+
 allowBuilds:
-  '@sentry/cli': set this to true or false
-  electron-winstaller: set this to true or false
+  '@sentry/cli': false
+  electron-winstaller: false
   esbuild: true
-  msw: set this to true or false
+  msw: false
   sharp: true
-  unrs-resolver: set this to true or false
+  unrs-resolver: false
