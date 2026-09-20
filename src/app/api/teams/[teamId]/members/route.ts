@@ -252,9 +252,6 @@ export async function POST(
 
       const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         rawEmail,
-        {
-          autoConfirmUser: false,
-        },
       );
 
       if (error) {
