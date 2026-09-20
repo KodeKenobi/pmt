@@ -239,7 +239,7 @@ export default function ClientsPage() {
     setEditClient({
       id: client.id,
       name: client.name,
-      email: client.email,
+      email: client.email || "",
       isInvited: client.isInvited,
     });
     setShowEditModal(true);
