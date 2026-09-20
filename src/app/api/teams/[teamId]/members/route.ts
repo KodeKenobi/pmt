@@ -218,6 +218,7 @@ export async function POST(
   const rawEmail =
     typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const rawRole = typeof body.role === "string" ? body.role : "";
+  const rawName = typeof body.name === "string" ? body.name.trim() : "";
   const selectedRole: Role = ALLOWED_TEAM_MEMBER_ROLES.has(rawRole as Role)
     ? (rawRole as Role)
     : Role.USER;
@@ -272,7 +273,7 @@ export async function POST(
       // Create user in our database
       target = await createUser({
         email: rawEmail,
-        name: inferNameFromEmail(rawEmail),
+        name: rawName || inferNameFromEmail(rawEmail),
         password: "", // No password needed with Supabase Auth
         role: selectedRole,
         teamId,

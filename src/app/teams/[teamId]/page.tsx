@@ -56,6 +56,7 @@ export default function TeamDetailPage() {
     role: "USER" as "USER" | "SUPER_ADMIN",
     phone: "",
   });
+  const [name, setName] = useState("");
 
   const loadTeamMeta = useCallback(async () => {
     const res = await fetch("/api/teams");
@@ -111,6 +112,7 @@ export default function TeamDetailPage() {
     setBusy(true);
     const endpoint = `/api/teams/${teamId}/members`;
     const payload = {
+      name: name.trim(),
       email: email.trim(),
       role,
     };
@@ -130,6 +132,7 @@ export default function TeamDetailPage() {
       console.log("response body:", body);
       if (!res.ok) throw new Error(body.error || "Failed to add member");
       setNotice("Invitation sent! They'll receive a link to set their password.");
+      setName("");
       setEmail("");
       setRole("USER");
       await loadMembers();
@@ -337,7 +340,20 @@ export default function TeamDetailPage() {
           onSubmit={onAdd}
           className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900"
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Staff name
+              </label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-950 dark:text-white"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Smith"
+              />
+            </div>
+
             <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Staff email
