@@ -187,7 +187,7 @@ function SettingsPageContent() {
   const [backupSettingsSaving, setBackupSettingsSaving] = useState(false);
   const [backupSettingsError, setBackupSettingsError] = useState("");
   const [backupSettingsSuccess, setBackupSettingsSuccess] = useState(false);
-  const [backupColumnExists, setBackupColumnExists] = useState(true);
+  const [_backupColumnExists, setBackupColumnExists] = useState(true);
 
   // User Profile display state (dummy/read-only for beauty)
   const [name, setName] = useState("");
@@ -369,7 +369,7 @@ function SettingsPageContent() {
             const value = JSON.parse(stored);
             setBackupAutomatic(value);
             setOriginalBackupAutomatic(value);
-          } catch (e) {
+          } catch (_e) {
             // Default to true if parsing fails
             setBackupAutomatic(true);
             setOriginalBackupAutomatic(true);
@@ -2301,7 +2301,7 @@ function SettingsPageContent() {
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
+        const _body = await res.json().catch(() => ({}));
         // If it fails due to missing column, we'll still save to localStorage
         console.warn(
           "Note: backupAutomatic database column not yet available. Using local storage for now."

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase";
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = createSupabaseAdminClient();
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     `;
 
     // Attempt to call a hypothetical sql_exec RPC function
-    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    const { data: _rpcResult, error: rpcError } = await supabase.rpc(
       "sql_exec",
       { query: sqlQuery }
     );

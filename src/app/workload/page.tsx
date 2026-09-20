@@ -852,7 +852,7 @@ export default function WorkloadPage() {
     (ticket) => ticket.status === "IN_PROGRESS",
   ).length;
 
-  const clientReviewCount = filteredTickets.filter(
+  const _clientReviewCount = filteredTickets.filter(
     (ticket) => ticket.status === "CLIENT_REVIEW",
   ).length;
 

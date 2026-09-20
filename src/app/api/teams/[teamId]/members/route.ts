@@ -3,13 +3,10 @@ import { Role } from "@/lib/db-types";
 import { db } from "@/lib/db";
 import {
   getUserFromRequest,
-  hashPassword,
   isInternalStaffEmail,
 } from "@/lib/auth";
 import { getUserWithTeamAccess, canAccessTeam } from "@/lib/access";
 import { writeAuditLog } from "@/lib/audit";
-import { sendAdminInviteEmail } from "@/lib/email-service";
-import { resolveAppBaseUrl } from "@/lib/app-url";
 import {
   createUser,
   findUserByEmail,
@@ -17,7 +14,6 @@ import {
   updateUser,
 } from "@/lib/user-store";
 import { createSupabaseAdminClient } from "@/lib/supabase";
-import { randomBytes } from "node:crypto";
 
 async function requireSuperAdmin(request: NextRequest) {
   const sessionUser = await getUserFromRequest(request);
@@ -251,7 +247,7 @@ export async function POST(
         teamName: team.name,
       });
 
-      const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         rawEmail,
       );
 

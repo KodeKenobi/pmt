@@ -245,7 +245,7 @@ function TicketsPageContent() {
   const [projects, setProjects] = useState<
     Array<{ id: string; name: string }>
   >([]);
-  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [_loadingProjects, setLoadingProjects] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
 
   useEffect(() => {
