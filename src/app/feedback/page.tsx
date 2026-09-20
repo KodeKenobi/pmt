@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { SelectMenu } from "@/components/SelectMenu";
 import { SkeletonLine } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { MessageSquare } from "lucide-react";
 
 interface FeedbackItem {
   id: string;
@@ -152,9 +154,11 @@ export default function FeedbackPage() {
             <SkeletonLine className="h-4 w-5/6" />
           </div>
         ) : visible.length === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-sm text-gray-500">
-            No feedback items in this filter.
-          </div>
+          <EmptyState
+            title="No feedback found"
+            description="Try changing the selected status filter."
+            icon={<MessageSquare className="h-6 w-6" aria-hidden="true" />}
+          />
         ) : (
           <div className="space-y-4">
             {visible.map((item) => (

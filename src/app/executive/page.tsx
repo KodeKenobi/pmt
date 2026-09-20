@@ -102,7 +102,39 @@ type ExecutivePreset = {
 
 const PRESETS_KEY = "pmt.executive.presets.v1";
 const FILTERS_KEY = "pmt.executive.filters.v1";
-const VIS_COLORS = ["#0f766e", "#0284c7", "#f59e0b", "#16a34a", "#ef4444"];
+const VIS_COLORS = ["#1B2A4A", "#3498DB", "#F39C12", "#2ECC71", "#E74C3C"];
+
+function ExecutiveSkeleton() {
+  return (
+    <div className="w-full space-y-7" aria-label="Loading executive analytics">
+      <div className="h-44 animate-pulse rounded-2xl border border-brand-200 bg-brand-50 dark:border-brand-500/30 dark:bg-[#1A1F2E]" />
+      <div className="grid gap-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-[#1A1F2E] md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-10 animate-pulse rounded-md bg-brand-100 dark:bg-[#0F1E38]"
+          />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-32 animate-pulse rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1A1F2E]"
+          />
+        ))}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-80 animate-pulse rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1A1F2E]"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function formatCompact(value: number) {
   return new Intl.NumberFormat("en", {
@@ -132,12 +164,16 @@ export default function ExecutivePage() {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<ExecutivePayload | null>(null);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [teamId, setTeamId] = useState("all");
   const [compareTeamId, setCompareTeamId] = useState("");
   const [githubRepo, setGithubRepo] = useState("all");
   const [presets, setPresets] = useState<ExecutivePreset[]>([]);
 
   const loadExecutiveData = useCallback(async () => {
+    setIsLoading(true);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
     try {
       const params = new URLSearchParams();
       if (teamId && teamId !== "all") params.set("teamId", teamId);
@@ -150,13 +186,21 @@ export default function ExecutivePage() {
       const qs = params.toString();
       const res = await fetch(`/api/analytics/executive${qs ? `?${qs}` : ""}`, {
         cache: "no-store",
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error("Failed to load analytics");
       const payload = (await res.json()) as ExecutivePayload;
       setData(payload);
       setError("");
     } catch {
-      setError("Could not load executive analytics.");
+      setError(
+        controller.signal.aborted
+          ? "Executive analytics took too long to load. Please try again."
+          : "Could not load executive analytics.",
+      );
+    } finally {
+      window.clearTimeout(timeoutId);
+      setIsLoading(false);
     }
   }, [teamId, compareTeamId, githubRepo]);
 
@@ -445,7 +489,7 @@ export default function ExecutivePage() {
   if (authLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500" />
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-brand-600" />
       </div>
     );
   }
@@ -460,18 +504,28 @@ export default function ExecutivePage() {
     );
   }
 
+  if (isLoading && !data) {
+    return (
+      <DashboardLayout>
+        <ExecutiveSkeleton />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
+      <style>{`
+        .dark .recharts-legend-item-text {
+          color: #d1d5db !important;
+        }
+      `}</style>
       <div className="w-full space-y-7">
-        <div className="relative overflow-hidden rounded-2xl border border-teal-100/70 bg-gradient-to-r from-[#f3fbf9] via-white to-[#fff7ed] p-6 shadow-sm dark:border-teal-900/40 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-          <div className="pointer-events-none absolute -left-10 -top-10 h-36 w-36 rounded-full bg-teal-100/70 blur-2xl dark:bg-teal-900/30" />
-          <div className="pointer-events-none absolute -bottom-12 -right-10 h-44 w-44 rounded-full bg-amber-100/60 blur-2xl dark:bg-amber-900/30" />
+        <div className="relative overflow-hidden rounded-2xl border border-brand-200/70 bg-gradient-to-r from-brand-50 via-white to-brand-100 p-6 shadow-sm dark:border-brand-500/30 dark:from-[#0F1419] dark:via-[#1A1F2E] dark:to-[#0F1E38]">
+          <div className="pointer-events-none absolute -left-10 -top-10 h-36 w-36 rounded-full bg-brand-200/30 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-12 -right-10 h-44 w-44 rounded-full bg-brand-500/20 blur-2xl" />
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">
-                Portfolio Intelligence
-              </p>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
                 Executive analytics cockpit
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-gray-600 dark:text-gray-300">
@@ -480,24 +534,24 @@ export default function ExecutivePage() {
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 self-start lg:self-auto">
-              <div className="rounded-xl border border-teal-200/70 bg-white/80 px-3 py-2 text-center dark:border-teal-900/40 dark:bg-gray-900/70">
-                <p className="text-[11px] uppercase tracking-wide text-gray-500">
+              <div className="w-32 rounded-none border border-brand-200/70 bg-white/80 px-3 py-1 text-center dark:border-brand-500/30 dark:bg-[#1A1F2E]/80">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Open
                 </p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {formatCompact(data?.openTickets ?? 0)}
                 </p>
               </div>
-              <div className="rounded-xl border border-sky-200/70 bg-white/80 px-3 py-2 text-center dark:border-sky-900/40 dark:bg-gray-900/70">
-                <p className="text-[11px] uppercase tracking-wide text-gray-500">
+              <div className="w-32 rounded-none border border-brand-200/70 bg-white/80 px-3 py-1 text-center dark:border-brand-500/30 dark:bg-[#1A1F2E]/80">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Teams
                 </p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {data?.teams.length ?? 0}
                 </p>
               </div>
-              <div className="rounded-xl border border-amber-200/70 bg-white/80 px-3 py-2 text-center dark:border-amber-900/40 dark:bg-gray-900/70">
-                <p className="text-[11px] uppercase tracking-wide text-gray-500">
+              <div className="w-32 rounded-none border border-brand-200/70 bg-white/80 px-3 py-1 text-center dark:border-brand-500/30 dark:bg-[#1A1F2E]/80">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Done
                 </p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -514,7 +568,7 @@ export default function ExecutivePage() {
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
                 Filters and saved views
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Tip: click chart bars to open filtered tickets
               </p>
             </div>
@@ -562,7 +616,7 @@ export default function ExecutivePage() {
               <button
                 type="button"
                 onClick={saveCurrentAsPreset}
-                className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-teal-600"
+                className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700"
               >
                 Save current view
               </button>
@@ -602,7 +656,7 @@ export default function ExecutivePage() {
           <>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Open tickets
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -610,7 +664,7 @@ export default function ExecutivePage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   People carrying work
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -618,7 +672,7 @@ export default function ExecutivePage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Unassigned open
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -626,7 +680,7 @@ export default function ExecutivePage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Open PRs
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -634,7 +688,7 @@ export default function ExecutivePage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Merged (7d)
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -642,7 +696,7 @@ export default function ExecutivePage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Connected repos
                 </p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
@@ -656,7 +710,7 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Ticket status mix
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Distribution by current workflow state.
                 </p>
                 <div className="mt-3 h-64">
@@ -688,7 +742,7 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Completion trend
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Weekly completed ticket flow.
                 </p>
                 <div className="mt-3 h-64">
@@ -704,12 +758,12 @@ export default function ExecutivePage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#0284c7"
+                            stopColor="#3498DB"
                             stopOpacity={0.45}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#0284c7"
+                            stopColor="#3498DB"
                             stopOpacity={0.05}
                           />
                         </linearGradient>
@@ -717,13 +771,13 @@ export default function ExecutivePage() {
                       <CartesianGrid
                         strokeDasharray="3 6"
                         vertical={false}
-                        stroke="#cbd5e1"
+                        stroke="#E5E7EB"
                       />
                       <Tooltip />
                       <Area
                         type="monotone"
                         dataKey="completed"
-                        stroke="#0284c7"
+                        stroke="#3498DB"
                         strokeWidth={2.5}
                         fill="url(#completionGlow)"
                       />
@@ -736,13 +790,13 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Workload pressure map
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Top members by open load and risk signals.
                 </p>
                 <div className="mt-3 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={pressureRadarData}>
-                      <PolarGrid stroke="#d1d5db" />
+                      <PolarGrid stroke="#E5E7EB" />
                       <PolarAngleAxis
                         dataKey="member"
                         tick={{ fontSize: 11 }}
@@ -753,22 +807,22 @@ export default function ExecutivePage() {
                       <Radar
                         name="Open"
                         dataKey="open"
-                        stroke="#0f766e"
-                        fill="#0f766e"
+                        stroke="#1B2A4A"
+                        fill="#1B2A4A"
                         fillOpacity={0.35}
                       />
                       <Radar
                         name="Overdue"
                         dataKey="overdue"
-                        stroke="#ef4444"
-                        fill="#ef4444"
+                        stroke="#E74C3C"
+                        fill="#E74C3C"
                         fillOpacity={0.18}
                       />
                       <Radar
                         name="Urgent"
                         dataKey="urgent"
-                        stroke="#f59e0b"
-                        fill="#f59e0b"
+                        stroke="#F39C12"
+                        fill="#F39C12"
                         fillOpacity={0.2}
                       />
                     </RadarChart>
@@ -781,7 +835,7 @@ export default function ExecutivePage() {
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 Repository breakdown
               </h3>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 PR activity by repository. Use the repo filter above for a
                 single-repo view.
               </p>
@@ -853,7 +907,7 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   GitHub PR state mix
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Open vs merged vs closed in current scope.
                 </p>
                 <div className="mt-3 h-64">
@@ -885,7 +939,7 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   GitHub merge trend
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Weekly merged pull requests.
                 </p>
                 <div className="mt-3 h-64">
@@ -901,12 +955,12 @@ export default function ExecutivePage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#16a34a"
+                            stopColor="#2ECC71"
                             stopOpacity={0.4}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#16a34a"
+                            stopColor="#2ECC71"
                             stopOpacity={0.06}
                           />
                         </linearGradient>
@@ -914,13 +968,13 @@ export default function ExecutivePage() {
                       <CartesianGrid
                         strokeDasharray="3 6"
                         vertical={false}
-                        stroke="#cbd5e1"
+                        stroke="#E5E7EB"
                       />
                       <Tooltip />
                       <Area
                         type="monotone"
                         dataKey="merged"
-                        stroke="#16a34a"
+                        stroke="#2ECC71"
                         strokeWidth={2.5}
                         fill="url(#ghMergeGlow)"
                       />
@@ -933,18 +987,18 @@ export default function ExecutivePage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   GitHub health signals
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Useful PR indicators for executive scan.
                 </p>
                 <div className="mt-4 space-y-3">
-                  <div className="group relative rounded-xl border border-gray-200 bg-gray-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50/40 dark:border-gray-800 dark:bg-gray-950 dark:hover:border-teal-800/50 dark:hover:bg-teal-900/10">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                  <div className="group relative rounded-xl border border-gray-200 bg-gray-50 p-3 transition-all hover:border-brand-300 hover:bg-brand-50/40 dark:border-gray-800 dark:bg-gray-950 dark:hover:border-brand-500/50 dark:hover:bg-brand-600/10">
+                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       Linked PRs
                     </p>
                     <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                       {formatCompact(data.githubAnalytics.linkedPullRequests)}
                     </p>
-                    <div className="mt-2 text-[11px] text-gray-500">
+                    <div className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
                       Includes open, merged, and closed pull requests in the
                       current scope.
                     </div>
@@ -954,7 +1008,7 @@ export default function ExecutivePage() {
                           href={toRepoPullsUrl(selectedRepoGithubKey)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="rounded border border-teal-300 px-2 py-1 text-[11px] font-semibold text-teal-700 hover:bg-teal-100 dark:border-teal-700 dark:text-teal-300 dark:hover:bg-teal-900/40"
+                          className="rounded border border-brand-300 px-2 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500 dark:text-brand-300 dark:hover:bg-brand-600/20"
                         >
                           Open selected repo PRs
                         </a>
@@ -1008,7 +1062,7 @@ export default function ExecutivePage() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                     People accountability board
                   </h2>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Who owns what right now, with urgency and delivery signals.
                   </p>
                 </div>
@@ -1047,7 +1101,7 @@ export default function ExecutivePage() {
                           <p className="font-medium text-gray-900 dark:text-white">
                             {person.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {person.email}
                           </p>
                         </td>
@@ -1113,18 +1167,18 @@ export default function ExecutivePage() {
 
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Delivery velocity
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
                   {formatCompact(completedWindowTotal)} completed
                 </p>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   Completed in recent reporting window for current team scope.
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Work at risk
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
@@ -1135,12 +1189,12 @@ export default function ExecutivePage() {
                     ),
                   )}
                 </p>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   Overdue open tickets currently assigned.
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Urgent pressure
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
@@ -1151,7 +1205,7 @@ export default function ExecutivePage() {
                     ),
                   )}
                 </p>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   Urgent open tickets currently assigned.
                 </p>
               </div>

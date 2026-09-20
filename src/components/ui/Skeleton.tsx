@@ -8,7 +8,7 @@ export function SkeletonText({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "h-4 bg-gray-200 rounded dark:bg-gray-800 animate-pulse",
+        "h-4 bg-gray-200 rounded dark:bg-gray-700 animate-pulse",
         className,
       )}
     />
@@ -19,7 +19,7 @@ export function SkeletonLine({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "h-3 bg-gray-200 rounded dark:bg-gray-800 animate-pulse w-full",
+        "h-3 bg-gray-200 rounded dark:bg-gray-700 animate-pulse w-full",
         className,
       )}
     />
@@ -30,7 +30,7 @@ export function SkeletonCard({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "bg-gray-100 dark:bg-gray-900 rounded-lg p-4 animate-pulse",
+        "bg-gray-100 dark:bg-gray-800 rounded-lg p-4 animate-pulse",
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function SkeletonRow({ className }: SkeletonProps) {
         className,
       )}
     >
-      <div className="h-10 w-10 bg-gray-200 dark:bg-gray-800 rounded-full" />
+      <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full" />
       <div className="flex-1">
         <SkeletonText className="mb-2 w-1/3" />
         <SkeletonText className="w-1/2 h-3" />

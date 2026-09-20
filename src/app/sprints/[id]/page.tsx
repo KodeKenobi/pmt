@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import KanbanBoard from "@/components/KanbanBoard";
+import EmptyState from "@/components/EmptyState";
 import CreateTicketModal from "@/components/CreateTicketModal";
 import type {
   CreateTicketPayload,
@@ -271,9 +272,9 @@ export default function SprintDetailPage() {
   if (!sprint) {
     return (
       <DashboardLayout>
-        <div className="rounded-xl border border-[#d0d7de] bg-white p-8">
+        <div className="rounded-xl border border-[#E5E7EB] bg-white p-8 dark:border-slate-700 dark:bg-gray-800">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-2 dark:text-white">
               {error || "Sprint not found"}
             </h2>
             <Link
@@ -305,10 +306,10 @@ export default function SprintDetailPage() {
       : 0;
 
   const statusColor: Record<string, string> = {
-    PLANNED: "bg-slate-100 text-slate-700",
-    ACTIVE: "bg-brand-100 text-brand-700",
-    COMPLETED: "bg-emerald-100 text-emerald-700",
-    CLOSED: "bg-gray-100 text-gray-700",
+    PLANNED: "bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300",
+    ACTIVE: "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300",
+    COMPLETED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+    CLOSED: "bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-300",
   };
 
   return (
@@ -355,53 +356,53 @@ export default function SprintDetailPage() {
 
         {/* Sprint info metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-lg border border-[#d0d7de] bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1 dark:text-gray-400">
               Start date
             </div>
             <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-              <Calendar className="w-4 h-4 text-gray-400" />
+              <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               <span className="font-semibold">
                 {format(new Date(sprint.startsAt), "MMM d, yyyy")}
               </span>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#d0d7de] bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1 dark:text-gray-400">
               End date
             </div>
             <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-              <Calendar className="w-4 h-4 text-gray-400" />
+              <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               <span className="font-semibold">
                 {format(new Date(sprint.endsAt), "MMM d, yyyy")}
               </span>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#d0d7de] bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1 dark:text-gray-400">
               Tickets
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 {tickets.length}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 {completedTickets} complete
               </span>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#d0d7de] bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1 dark:text-gray-400">
               Completion
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {completionRate}%
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                 <div
                   className="h-full bg-brand-600 transition-all"
                   style={{ width: `${completionRate}%` }}
@@ -419,23 +420,24 @@ export default function SprintDetailPage() {
         )}
 
         {/* Kanban board */}
-        <div className="rounded-xl border border-[#d0d7de] bg-white p-4">
+        <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
           {tickets.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Flag className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold mb-2">No tickets yet</p>
-              <p className="text-sm mb-4">
-                This sprint is ready to receive tickets.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(true)}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Create first ticket</span>
-              </button>
-            </div>
+            <EmptyState
+              title="No tickets yet"
+              description="This sprint is ready to receive tickets."
+              icon={<Flag className="h-6 w-6" aria-hidden="true" />}
+              action={
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  className="btn-primary inline-flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Create first ticket</span>
+                </button>
+              }
+              className="border-0 bg-transparent shadow-none"
+            />
           ) : (
             <KanbanBoard
               tickets={tickets}

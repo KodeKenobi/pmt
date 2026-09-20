@@ -160,10 +160,24 @@ export async function GET(request: NextRequest) {
       docs = await hydrateDocuments(baseDocs as any[]);
     }
 
-    const github = await getGithubClient(sessionUser.id);
     const githubOrg = process.env.GITHUB_ORG?.trim() || "EnableTechCo";
-    const repoReadmes = github
-      ? await Promise.all(
+    let repoReadmes: Array<{
+      id: string;
+      kind: string;
+      title: string;
+      summary: string;
+      contentHtml: string | null;
+      updatedAt: string | null;
+      owner: string;
+      repo: string;
+      url: string;
+      project: null;
+    }> = [];
+
+    try {
+      const github = await getGithubClient(sessionUser.id);
+      if (github) {
+        repoReadmes = await Promise.all(
           (await fetchOrgRepos(github, githubOrg)).map(async (repo) => {
             const readmeHtml = await fetchRepoReadmeHtml(
               github,
@@ -190,8 +204,11 @@ export async function GET(request: NextRequest) {
               project: null,
             };
           }),
-        )
-      : [];
+        );
+      }
+    } catch (error) {
+      console.warn("Docs library GitHub fetch unavailable:", error);
+    }
 
     return NextResponse.json(
       {

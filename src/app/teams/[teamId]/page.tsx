@@ -6,7 +6,9 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/DashboardLayout";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import EmptyState from "@/components/EmptyState";
 import { SelectMenu } from "@/components/SelectMenu";
+import { SkeletonRow } from "@/components/ui/Skeleton";
 import {
   ArrowLeft,
   Mail,
@@ -14,6 +16,7 @@ import {
   RotateCcw,
   Save,
   UserMinus,
+  Users,
 } from "lucide-react";
 import { onRealtimeChange } from "@/lib/realtime-events";
 
@@ -38,7 +41,6 @@ export default function TeamDetailPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [warning, setWarning] = useState("");
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"USER" | "SUPER_ADMIN">("USER");
   const [busy, setBusy] = useState(false);
@@ -109,7 +111,6 @@ export default function TeamDetailPage() {
     setBusy(true);
     const endpoint = `/api/teams/${teamId}/members`;
     const payload = {
-      name: fullName.trim(),
       email: email.trim(),
       role,
     };
@@ -128,20 +129,7 @@ export default function TeamDetailPage() {
       console.log("response ok:", res.ok);
       console.log("response body:", body);
       if (!res.ok) throw new Error(body.error || "Failed to add member");
-      if (body.invited) {
-        if (body.inviteEmailSent === false) {
-          setWarning(
-            typeof body.warning === "string"
-              ? body.warning
-              : "Member added, but invitation email failed to send.",
-          );
-        } else {
-          setNotice("Member invited and added to the team.");
-        }
-      } else {
-        setNotice("Member added to the team.");
-      }
-      setFullName("");
+      setNotice("Invitation sent! They'll receive a link to set their password.");
       setEmail("");
       setRole("USER");
       await loadMembers();
@@ -158,8 +146,6 @@ export default function TeamDetailPage() {
     const targetMember = memberToRemove;
     if (!targetMember) return;
 
-    // Close modal immediately so errors are shown on the page, not behind an overlay.
-    setMemberToRemove(null);
     setError("");
     setNotice("");
     setWarning("");
@@ -173,19 +159,23 @@ export default function TeamDetailPage() {
 
       if (!res.ok) {
         setError(typeof body.error === "string" ? body.error : "Remove failed");
+        setMemberToRemove(null);
         return;
       }
 
       if (body.removed === false) {
         setWarning("No membership row was deleted. Refresh and try again.");
         await loadMembers();
+        setMemberToRemove(null);
         return;
       }
 
       await loadMembers();
       setNotice(`Removed ${targetMember.name} from this team.`);
+      setMemberToRemove(null);
     } catch {
       setError("Remove failed. Please try again.");
+      setMemberToRemove(null);
     } finally {
       setRemoving(false);
     }
@@ -338,8 +328,8 @@ export default function TeamDetailPage() {
             {loading && !teamName ? "Team" : teamName || "Team"}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            View members and add staff by email. New staff will be invited
-            automatically if they do not already have an account.
+            Add staff by email address. They'll receive a magic link to set up
+            their account.
           </p>
         </div>
 
@@ -347,20 +337,7 @@ export default function TeamDetailPage() {
           onSubmit={onAdd}
           className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900"
         >
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="flex-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Full name
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-950 dark:text-white"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full name"
-              />
-            </div>
-
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex-1">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Staff email
@@ -424,17 +401,22 @@ export default function TeamDetailPage() {
         )}
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
-          </div>
+          <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <li key={index} className="flex flex-col gap-3 px-4 py-4">
+                <SkeletonRow />
+              </li>
+            ))}
+          </ul>
+        ) : members.length === 0 ? (
+          <EmptyState
+            title="No members yet"
+            description="Add someone by email to start building this team."
+            icon={<Users className="h-6 w-6" aria-hidden="true" />}
+          />
         ) : (
           <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
-            {members.length === 0 ? (
-              <li className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                No members yet. Add someone by email above.
-              </li>
-            ) : (
-              members.map((m) => (
+            {members.map((m) => (
                 <li
                   key={m.membershipId}
                   className="flex flex-col gap-3 px-4 py-4 text-gray-900 dark:text-white sm:flex-row sm:items-center sm:justify-between"
@@ -461,7 +443,7 @@ export default function TeamDetailPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {m.invitationStatus !== "ACTIVATED" && (
                       <button
                         type="button"
@@ -560,8 +542,7 @@ export default function TeamDetailPage() {
                     </div>
                   ) : null}
                 </li>
-              ))
-            )}
+              ))}
           </ul>
         )}
       </div>

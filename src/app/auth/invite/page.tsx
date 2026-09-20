@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   AlertCircle,
   Eye,
@@ -203,10 +204,15 @@ function InviteContent() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="w-full max-w-md px-6 sm:px-8 lg:px-12">
           <div className="relative z-10 w-full bg-black/60 backdrop-blur-sm border border-white/12 shadow-xl rounded-2xl p-8">
-            <div className="flex items-center gap-3 mb-6 justify-center">
-              <div className="text-white text-2xl font-medium">
-                Lighthouse Project Management
-              </div>
+            <div className="mb-6 flex justify-center">
+              <Image
+                src="/lighthouse-logo.png"
+                alt="Lighthouse Project Management"
+                width={200}
+                height={200}
+                priority
+                className="h-auto w-44"
+              />
             </div>
 
             {success ? (

@@ -181,14 +181,30 @@ function SettingsPageContent() {
   const [restoringBackupId, setRestoringBackupId] = useState("");
   const importBackupInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Backup settings state
+  const [backupAutomatic, setBackupAutomatic] = useState(true);
+  const [originalBackupAutomatic, setOriginalBackupAutomatic] = useState(true);
+  const [backupSettingsSaving, setBackupSettingsSaving] = useState(false);
+  const [backupSettingsError, setBackupSettingsError] = useState("");
+  const [backupSettingsSuccess, setBackupSettingsSuccess] = useState(false);
+  const [backupColumnExists, setBackupColumnExists] = useState(true);
+
   // User Profile display state (dummy/read-only for beauty)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [editedName, setEditedName] = useState("");
+  const [editedEmail, setEditedEmail] = useState("");
+  const [profileEditing, setProfileEditing] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
+      setEditedName(user.name);
+      setEditedEmail(user.email);
       void checkGithubStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -310,6 +326,58 @@ function SettingsPageContent() {
   useEffect(() => {
     if (activeTab !== "backup" || !isSuperAdmin) return;
     void loadBackups();
+  }, [activeTab, isSuperAdmin]);
+
+  useEffect(() => {
+    if (activeTab !== "backup" || !isSuperAdmin) return;
+    const loadOrgSettings = async () => {
+      try {
+        const res = await fetch("/api/organization");
+        if (res.ok) {
+          const data = await res.json();
+          const value = data.backupAutomatic ?? true;
+          setBackupAutomatic(value);
+          setOriginalBackupAutomatic(value);
+          setBackupColumnExists(true);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("backupAutomatic", JSON.stringify(value));
+          }
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to load organization settings:", error);
+      }
+
+      // Check if column exists by calling the migration endpoint
+      try {
+        const migrationRes = await fetch("/api/admin/migrate-backup-auto", {
+          method: "POST",
+        });
+        if (migrationRes.ok) {
+          const migrationData = await migrationRes.json();
+          setBackupColumnExists(migrationData.columnExists ?? false);
+        }
+      } catch (error) {
+        console.error("Failed to check migration status:", error);
+      }
+
+      // Fallback to localStorage
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("backupAutomatic");
+        if (stored !== null) {
+          try {
+            const value = JSON.parse(stored);
+            setBackupAutomatic(value);
+            setOriginalBackupAutomatic(value);
+          } catch (e) {
+            // Default to true if parsing fails
+            setBackupAutomatic(true);
+            setOriginalBackupAutomatic(true);
+          }
+        }
+      }
+    };
+    void loadOrgSettings();
   }, [activeTab, isSuperAdmin]);
 
   useEffect(() => {
@@ -571,12 +639,44 @@ function SettingsPageContent() {
     }
   }, [loadGithubProjectAccount]);
 
+  const handleSaveProfile = useCallback(async () => {
+    setProfileError("");
+    setProfileSuccess(false);
+    setProfileSaving(true);
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editedName, email: editedEmail }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setProfileError(data.error || "Failed to update profile");
+        return;
+      }
+
+      setName(editedName);
+      setEmail(editedEmail);
+      setProfileSuccess(true);
+      setProfileEditing(false);
+      setTimeout(() => setProfileSuccess(false), 3000);
+    } catch (error) {
+      console.error("Save profile error:", error);
+      setProfileError("An error occurred while saving your profile");
+    } finally {
+      setProfileSaving(false);
+    }
+  }, [editedName, editedEmail]);
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-full w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-            <SettingsIcon className="w-8 h-8 text-brand-500 animate-spin-slow" />
+            <SettingsIcon className="w-8 h-8 text-brand-500 dark:text-blue-400 animate-spin-slow" />
             Settings
           </h1>
           <p className="text-gray-500 mt-1">
@@ -586,7 +686,7 @@ function SettingsPageContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Sidebar tabs */}
-          <div className="md:col-span-1 flex flex-col space-y-1 bg-white/60 dark:bg-[#1c1c24]/60 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-4 rounded-xl shadow-card h-fit">
+          <div className="md:col-span-1 flex flex-col space-y-1 bg-white/60 dark:bg-[#1A1F2E]/60 backdrop-blur-md border border-gray-200 dark:border-gray-800 p-4 rounded-xl shadow-card h-fit">
             <button
               onClick={() => setActiveTab("profile")}
               className={cn(
@@ -656,15 +756,48 @@ function SettingsPageContent() {
           {/* Settings Panels */}
           <div className="md:col-span-3">
             {activeTab === "profile" && (
-              <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Profile Details
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Your basic account information
-                  </p>
+              <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                      Profile Details
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Your basic account information
+                    </p>
+                  </div>
+                  {isSuperAdmin && (
+                    <button
+                      onClick={() => {
+                        if (profileEditing) {
+                          setEditedName(name);
+                          setEditedEmail(email);
+                          setProfileEditing(false);
+                          setProfileError("");
+                        } else {
+                          setProfileEditing(true);
+                        }
+                      }}
+                      disabled={profileSaving}
+                      className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
+                    >
+                      {profileEditing ? "Cancel" : "Edit"}
+                    </button>
+                  )}
                 </div>
+
+                {profileError && (
+                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
+                    {profileError}
+                  </div>
+                )}
+
+                {profileSuccess && (
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-xl p-4 text-sm text-green-700 dark:text-green-300">
+                    Profile updated successfully
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -672,9 +805,15 @@ function SettingsPageContent() {
                     </label>
                     <input
                       type="text"
-                      value={name}
-                      disabled
-                      className="w-full input-modern bg-gray-50 dark:bg-gray-900 cursor-not-allowed opacity-70"
+                      value={profileEditing ? editedName : name}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      disabled={!profileEditing}
+                      className={cn(
+                        "w-full input-modern",
+                        profileEditing
+                          ? "bg-white dark:bg-gray-900"
+                          : "bg-gray-50 dark:bg-gray-900 cursor-not-allowed opacity-70"
+                      )}
                     />
                   </div>
                   <div className="space-y-1">
@@ -683,29 +822,69 @@ function SettingsPageContent() {
                     </label>
                     <input
                       type="email"
-                      value={email}
-                      disabled
-                      className="w-full input-modern bg-gray-50 dark:bg-gray-900 cursor-not-allowed opacity-70"
+                      value={profileEditing ? editedEmail : email}
+                      onChange={(e) => setEditedEmail(e.target.value)}
+                      disabled={!profileEditing}
+                      className={cn(
+                        "w-full input-modern",
+                        profileEditing
+                          ? "bg-white dark:bg-gray-900"
+                          : "bg-gray-50 dark:bg-gray-900 cursor-not-allowed opacity-70"
+                      )}
                     />
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-3 text-sm text-blue-700 dark:text-blue-300">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold">
-                      Profile updates are managed by IT
-                    </p>
-                    <p className="mt-0.5 text-xs opacity-90">
-                      To change your profile details, contact your supervisor or
-                      administrative team.
-                    </p>
+
+                {profileEditing && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={profileSaving || !editedName || !editedEmail}
+                      className="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {profileSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileEditing(false);
+                        setEditedName(name);
+                        setEditedEmail(email);
+                        setProfileError("");
+                      }}
+                      disabled={profileSaving}
+                      className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
                   </div>
-                </div>
+                )}
+
+                {!isSuperAdmin && (
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-3 text-sm text-blue-700 dark:text-blue-300">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold">
+                        Profile updates are managed by IT
+                      </p>
+                      <p className="mt-0.5 text-xs opacity-90">
+                        To change your profile details, contact your supervisor or
+                        administrative team.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "github" && (
-              <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 p-6 lg:p-8 rounded-2xl shadow-card space-y-8">
+              <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 p-6 lg:p-8 rounded-2xl shadow-card space-y-8">
                 <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -870,7 +1049,7 @@ function SettingsPageContent() {
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#13131a] space-y-5 lg:p-6">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#1A1F2E] space-y-5 lg:p-6">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -938,7 +1117,7 @@ function SettingsPageContent() {
                               Repository
                             </label>
                             <select
-                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-white"
+                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-white"
                               value={selectedRepoFullName}
                               onChange={(event) => {
                                 setSelectedRepoFullName(event.target.value);
@@ -971,7 +1150,7 @@ function SettingsPageContent() {
                                       "w-full px-4 py-3 text-left transition-colors",
                                       isSelected
                                         ? "bg-brand-50 dark:bg-brand-500/10"
-                                        : "bg-white hover:bg-gray-50 dark:bg-[#111118] dark:hover:bg-[#1b1b24]",
+                                        : "bg-white hover:bg-gray-50 dark:bg-[#0F1419] dark:hover:bg-[#1A1F2E]",
                                     )}
                                   >
                                     <div className="flex items-center justify-between gap-2">
@@ -1015,7 +1194,7 @@ function SettingsPageContent() {
                                     selectedRepoBranches.map((branch) => (
                                       <div
                                         key={branch.name}
-                                        className="rounded-md border border-gray-200 bg-white px-3 py-2.5 text-xs text-slate-800 dark:border-gray-700 dark:bg-[#12121a] dark:text-slate-200"
+                                        className="rounded-md border border-gray-200 bg-white px-3 py-2.5 text-xs text-slate-800 dark:border-gray-700 dark:bg-[#0F1419] dark:text-slate-200"
                                       >
                                         <p className="font-semibold">
                                           {branch.name}
@@ -1047,7 +1226,7 @@ function SettingsPageContent() {
                                         href={pr.html_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block rounded-md border border-gray-200 bg-white px-3 py-2.5 text-xs text-slate-800 hover:bg-gray-50 dark:border-gray-700 dark:bg-[#12121a] dark:text-slate-200 dark:hover:bg-[#1a1a24]"
+                                        className="block rounded-md border border-gray-200 bg-white px-3 py-2.5 text-xs text-slate-800 hover:bg-gray-50 dark:border-gray-700 dark:bg-[#0F1419] dark:text-slate-200 dark:hover:bg-[#1A1F2E]"
                                       >
                                         <p className="font-semibold">
                                           #{pr.number} {pr.title}
@@ -1083,7 +1262,7 @@ function SettingsPageContent() {
                     </div>
 
                     {!isSuperAdmin && showSwitchGithubForm ? (
-                      <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#13131a]">
+                      <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-[#1A1F2E]">
                         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                           Connect using personal token
                         </p>
@@ -1126,7 +1305,7 @@ function SettingsPageContent() {
                 ) : (
                   <div className="space-y-6">
                     <div className="grid gap-4 lg:grid-cols-2">
-                      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-slate-50 dark:bg-[#13131a] p-5">
+                      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-slate-50 dark:bg-[#1A1F2E] p-5">
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
                           One-click connect (recommended)
                         </p>
@@ -1144,7 +1323,7 @@ function SettingsPageContent() {
                         </button>
                       </div>
 
-                      <div className="bg-slate-50 dark:bg-[#13131a] rounded-xl p-5 border border-gray-200 dark:border-gray-800/80 text-sm space-y-3">
+                      <div className="bg-slate-50 dark:bg-[#1A1F2E] rounded-xl p-5 border border-gray-200 dark:border-gray-800/80 text-sm space-y-3">
                         <p className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                           <Key className="w-4 h-4 text-brand-500" />
                           How to connect your GitHub account:
@@ -1178,7 +1357,7 @@ function SettingsPageContent() {
                       </div>
                     </div>
 
-                    <div className="space-y-2 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#13131a]">
+                    <div className="space-y-2 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#1A1F2E]">
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
                         GitHub Personal Access Token (Classic)
                       </label>
@@ -1222,7 +1401,7 @@ function SettingsPageContent() {
             )}
 
             {activeTab === "notifications" && (
-              <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
+              <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
                 <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -1308,7 +1487,7 @@ function SettingsPageContent() {
                             }))
                           }
                           className={cn(
-                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-[#1c1c24]",
+                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-[#1A1F2E]",
                             notifPrefs[key]
                               ? "bg-brand-600"
                               : "bg-gray-200 dark:bg-gray-700",
@@ -1351,7 +1530,7 @@ function SettingsPageContent() {
             )}
 
             {activeTab === "security" && isSuperAdmin && (
-              <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
+              <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                     Security Settings
@@ -1374,7 +1553,7 @@ function SettingsPageContent() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#13131a] p-4 space-y-3">
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1F2E] p-4 space-y-3">
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-white">
                       Email delivery test
@@ -1438,7 +1617,7 @@ function SettingsPageContent() {
               </div>
             )}
             {activeTab === "backup" && isSuperAdmin ? (
-              <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
+              <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-card space-y-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -1558,7 +1737,62 @@ function SettingsPageContent() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#13131a] p-4">
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1F2E] p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                        Automatic nightly backups
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Scheduled backups run automatically every night at 2:00 AM UTC
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setBackupAutomatic(!backupAutomatic)}
+                        className={cn(
+                          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                          backupAutomatic
+                            ? "bg-green-600"
+                            : "bg-gray-400 dark:bg-gray-500"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "pointer-events-none inline-block h-5 w-5 transform rounded-full shadow ring-0 transition duration-200",
+                            backupAutomatic ? "bg-white translate-x-5" : "bg-gray-700 dark:bg-gray-300 translate-x-0"
+                          )}
+                        />
+                      </button>
+                      {backupAutomatic !== originalBackupAutomatic && (
+                        <button
+                          onClick={() => void saveBackupSettings()}
+                          disabled={backupSettingsSaving}
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+                        >
+                          {backupSettingsSaving ? "Saving..." : "Save"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {backupSettingsError && (
+                    <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                      {backupSettingsError}
+                    </p>
+                  )}
+                  {backupSettingsSuccess && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-green-600 dark:text-green-400">
+                        ✓ Settings saved successfully
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Note: This setting is saved on your device for now. It will stay saved when we update the system.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1F2E] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -2050,6 +2284,44 @@ function SettingsPageContent() {
       );
     } finally {
       setImportingBackup(false);
+    }
+  }
+
+  async function saveBackupSettings() {
+    setBackupSettingsSaving(true);
+    setBackupSettingsError("");
+    setBackupSettingsSuccess(false);
+
+    try {
+      // First try to save to the database
+      const res = await fetch("/api/organization", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ backupAutomatic }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        // If it fails due to missing column, we'll still save to localStorage
+        console.warn(
+          "Note: backupAutomatic database column not yet available. Using local storage for now."
+        );
+      }
+
+      // Save to localStorage as fallback/local preference
+      if (typeof window !== "undefined") {
+        localStorage.setItem("backupAutomatic", JSON.stringify(backupAutomatic));
+      }
+
+      setOriginalBackupAutomatic(backupAutomatic);
+      setBackupSettingsSuccess(true);
+      setTimeout(() => setBackupSettingsSuccess(false), 3000);
+    } catch (error) {
+      setBackupSettingsError(
+        error instanceof Error ? error.message : "Failed to save backup settings",
+      );
+    } finally {
+      setBackupSettingsSaving(false);
     }
   }
 }

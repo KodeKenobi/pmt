@@ -69,7 +69,7 @@ describe("Backup routes", () => {
     getUserFromRequestMock.mockResolvedValue({
       id: "sa-1",
       role: "SUPER_ADMIN",
-      email: "sa@e-t.co.za",
+      email: "sa@lighthousemediagroup.com",
       name: "Super",
     } as any);
     createAndStoreBackupSnapshotMock.mockResolvedValue({
@@ -137,7 +137,7 @@ describe("Backup routes", () => {
     getUserFromRequestMock.mockResolvedValue({
       id: "sa-1",
       role: "SUPER_ADMIN",
-      email: "sa@e-t.co.za",
+      email: "sa@lighthousemediagroup.com",
       name: "Super",
     } as any);
     loadBackupRecordByIdMock.mockResolvedValue(null);

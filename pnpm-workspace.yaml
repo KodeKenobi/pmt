@@ -12,7 +12,6 @@ overrides:
 
 allowBuilds:
   '@sentry/cli': false
-  electron-winstaller: false
   esbuild: true
   msw: false
   sharp: true

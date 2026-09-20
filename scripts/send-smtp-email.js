@@ -31,7 +31,7 @@ async function main() {
   const fromEmail = process.env.SMTP_FROM_EMAIL || user;
   const fromName = process.env.SMTP_FROM_NAME || "Enable Project Management";
 
-  const to = process.argv[2] || "dev@e-t.co.za";
+  const to = process.argv[2] || "dev@lighthousemediagroup.com";
   const subject = process.argv[3] || "SMTP test from Project Management Tool";
   const text = process.argv[4] || "This is a direct SMTP test email.";
 

@@ -40,7 +40,7 @@ export default function DashboardHeader({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-0.5 shadow-sm dark:border-gray-800 dark:bg-[#1c1c24]">
+          <div className="flex rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-0.5 shadow-sm dark:border-gray-800 dark:bg-[#1A1F2E]">
             <button
               onClick={() => setSelectedView("kanban")}
               className={cn(

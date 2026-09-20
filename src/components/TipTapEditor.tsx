@@ -136,9 +136,9 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, setContent }) => {
   );
 
   return (
-    <div className="flex flex-col border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1a1a24] shadow-sm">
+    <div className="flex flex-col border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1A1F2E] shadow-sm">
       {/* Editor Rich Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50/80 dark:bg-[#16161f] border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm">
+      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50/80 dark:bg-[#1A1F2E] border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm">
         {/* Headings */}
         <ToolbarButton
           onClick={() =>
@@ -258,7 +258,7 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, setContent }) => {
       </div>
 
       {/* Editor Content Area */}
-      <div className="bg-white dark:bg-[#1a1a24]/40">
+      <div className="bg-white dark:bg-[#1A1F2E]/40">
         <EditorContent editor={editor} />
       </div>
     </div>

@@ -53,21 +53,21 @@ CREATE TABLE IF NOT EXISTS "Client" (
 
 -- Insert a SUPER_ADMIN if one doesn't exist
 INSERT INTO "User" (email, name, role, password)
-SELECT 'dev@e-t.co.za', 'Super Admin', 'SUPER_ADMIN', ''
+SELECT 'dev@lighthousemediagroup.com', 'Super Admin', 'SUPER_ADMIN', ''
 WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE role = 'SUPER_ADMIN');
 
 -- Insert a test CLIENT user for portal testing (idempotent)
 INSERT INTO "User" (email, name, role, password)
-SELECT 'client.test@e-t.co.za', 'Test Client User', 'CLIENT', ''
+SELECT 'client.test@lighthousemediagroup.com', 'Test Client User', 'CLIENT', ''
 WHERE NOT EXISTS (
-  SELECT 1 FROM "User" WHERE email = 'client.test@e-t.co.za'
+  SELECT 1 FROM "User" WHERE email = 'client.test@lighthousemediagroup.com'
 );
 
 -- Ensure matching Client profile exists for role-based client scoping
 INSERT INTO "Client" (name, email, "isInvited")
-SELECT 'Test Client User', 'client.test@e-t.co.za', true
+SELECT 'Test Client User', 'client.test@lighthousemediagroup.com', true
 WHERE NOT EXISTS (
-  SELECT 1 FROM "Client" WHERE email = 'client.test@e-t.co.za'
+  SELECT 1 FROM "Client" WHERE email = 'client.test@lighthousemediagroup.com'
 );
 
 -- Helpful note:

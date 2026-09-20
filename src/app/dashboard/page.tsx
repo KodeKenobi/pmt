@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardHeader from "@/components/DashboardHeader";
+import EmptyState from "@/components/EmptyState";
 import { OverviewMetricStrip } from "@/components/OverviewMetricStrip";
 import { MetricCard } from "@/components/MetricCard";
 import { SelectMenu } from "@/components/SelectMenu";
@@ -538,29 +539,30 @@ export default function DashboardPage() {
         <div className="w-full space-y-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="mb-2 text-3xl font-bold tracking-tight text-brand-600 dark:text-brand-400">
+              <h1 className="mb-2 text-3xl font-bold tracking-tight text-brand-600 dark:text-white">
                 Super Admin Overview
               </h1>
-              <p className="text-brand-600 dark:text-brand-400">
+              <p className="text-brand-600 dark:text-gray-300">
                 Full project oversight and team management.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/executive"
+                style={{ color: "#FFFFFF" }}
                 className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
               >
                 Executive analytics
               </Link>
               <Link
                 href="/teams"
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-white dark:hover:bg-white/5"
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-white dark:hover:bg-white/5"
               >
                 Manage teams
               </Link>
               <Link
                 href="/projects"
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-white dark:hover:bg-white/5"
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-white dark:hover:bg-white/5"
               >
                 Projects
               </Link>
@@ -598,7 +600,7 @@ export default function DashboardPage() {
           />
           {/* Team selector for super admin */}
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
               Team scope
             </span>
             <SelectMenu
@@ -723,7 +725,7 @@ export default function DashboardPage() {
 
         {selectedView === "kanban" && (
           <div className="space-y-6">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-500 w-4 h-4" />
@@ -732,7 +734,7 @@ export default function DashboardPage() {
                     placeholder="Search tickets or clients..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-lg border border-gray-100 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 transition focus:border-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-100/60 dark:border-gray-100 dark:bg-[#1c1c24] dark:text-white"
+                    className="w-full rounded-lg border border-gray-100 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 transition focus:border-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-100/60 dark:border-gray-100 dark:bg-[#1A1F2E] dark:text-white"
                   />
                 </div>
 
@@ -748,7 +750,7 @@ export default function DashboardPage() {
                       }))}
                       placeholder="Team"
                       className="min-w-[180px]"
-                      triggerClassName="bg-white border border-gray-100 dark:bg-[#1c1c24] dark:border-gray-100"
+                      triggerClassName="bg-white border border-gray-100 dark:bg-[#1A1F2E] dark:border-gray-100"
                     />
                   ) : null}
 
@@ -758,7 +760,7 @@ export default function DashboardPage() {
                     options={statusFilterOptions}
                     placeholder="Status"
                     className="min-w-[200px]"
-                    triggerClassName="bg-white border border-gray-100 dark:bg-[#1c1c24] dark:border-gray-100"
+                    triggerClassName="bg-white border border-gray-100 dark:bg-[#1A1F2E] dark:border-gray-100"
                   />
 
                   <SelectMenu
@@ -767,7 +769,7 @@ export default function DashboardPage() {
                     options={priorityFilterOptions}
                     placeholder="Priority"
                     className="min-w-[180px]"
-                    triggerClassName="bg-white border border-gray-100 dark:bg-[#1c1c24] dark:border-gray-100"
+                    triggerClassName="bg-white border border-gray-100 dark:bg-[#1A1F2E] dark:border-gray-100"
                   />
 
                   {loadingSprints ? (
@@ -780,7 +782,7 @@ export default function DashboardPage() {
                       options={sprintFilterOptions}
                       placeholder="Sprint"
                       className="min-w-[200px]"
-                      triggerClassName="bg-white border border-gray-100 dark:bg-[#1c1c24] dark:border-gray-100"
+                      triggerClassName="bg-white border border-gray-100 dark:bg-[#1A1F2E] dark:border-gray-100"
                     />
                   )}
                 </div>
@@ -813,7 +815,7 @@ export default function DashboardPage() {
 
         {selectedView === "list" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm dark:border-slate-800 dark:from-[#171926] dark:to-[#121520]">
+            <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm dark:border-slate-800 dark:from-[#1A1F2E] dark:to-[#0F1419]">
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 <div className="flex-1">
                   <div className="relative">
@@ -882,22 +884,23 @@ export default function DashboardPage() {
             {loading ? (
               <SkeletonTable rows={6} cols={5} />
             ) : filteredTickets.length === 0 ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] py-12 text-center shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
-                <p className="text-gray-600 text-lg mb-2">No tickets found</p>
-                <p className="text-gray-500 text-sm mb-4">
-                  Try adjusting your search or filters
-                </p>
-                {user.role === "USER" && (
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="btn-primary"
-                  >
-                    Create your first ticket
-                  </button>
-                )}
-              </div>
+              <EmptyState
+                title="No tickets found"
+                description="Try adjusting your search or filters."
+                icon={<ListTodo className="h-6 w-6" aria-hidden="true" />}
+                action={
+                  user.role === "USER" ? (
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="btn-primary"
+                    >
+                      Create ticket
+                    </button>
+                  ) : null
+                }
+              />
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/95 shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-[#141827]">
+              <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/95 shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-[#1A1F2E]">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>

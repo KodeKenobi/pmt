@@ -188,14 +188,14 @@ const priorityConfig: Record<string, { label: string; className: string }> = {
 
 const statusColorMap: Record<string, string> = {
   BACKLOG: "#6b7280",
-  TODO: "#64748b",
-  REFINE: "#4f46e5",
-  IN_PROGRESS: "#3b82f6",
-  IN_REVIEW: "#06b6d4",
-  QA: "#f97316",
-  REVISIONS: "#eab308",
-  COMPLETE: "#22c55e",
-  CLIENT_REVIEW: "#ec4899",
+  TODO: "#4A4A4A",
+  REFINE: "#1B2A4A",
+  IN_PROGRESS: "#3498DB",
+  IN_REVIEW: "#3498DB",
+  QA: "#F39C12",
+  REVISIONS: "#F39C12",
+  COMPLETE: "#2ECC71",
+  CLIENT_REVIEW: "#3498DB",
 };
 
 function getPriorityDisplay(priority?: string | null) {
@@ -520,7 +520,7 @@ export default function KanbanBoard({
                     <div
                       className="w-4 h-4 rounded-full"
                       style={{
-                        backgroundColor: statusColorMap[status] || "#666",
+                        backgroundColor: statusColorMap[status] || "#6B7280",
                       }}
                     />
                     <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">

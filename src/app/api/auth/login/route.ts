@@ -1,48 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmail, verifyPassword } from "@/lib/auth";
+import { getUserByEmail } from "@/lib/auth";
 import { getUserWithTeamAccess, teamIdsForUser } from "@/lib/access";
 import { createSupabaseAdminClient } from "@/lib/supabase";
 import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
-    const { accessToken, email: rawEmail, password } = await request.json();
+    const { accessToken } = await request.json();
 
-    let email: string | null = null;
-
-    if (typeof rawEmail === "string" && rawEmail.trim()) {
-      email = rawEmail.toLowerCase().trim();
+    if (!accessToken || typeof accessToken !== "string") {
+      return NextResponse.json(
+        { error: "Access token is required" },
+        { status: 400 },
+      );
     }
 
-    if (email) {
-      if (typeof password !== "string" || !password) {
-        return NextResponse.json(
-          { error: "Email and password are required" },
-          { status: 400 },
-        );
-      }
-    } else {
-      if (!accessToken || typeof accessToken !== "string") {
-        return NextResponse.json(
-          { error: "Email or access token is required" },
-          { status: 400 },
-        );
-      }
+    const supabaseAdmin = createSupabaseAdminClient();
+    const { data: supabaseData, error: supabaseError } =
+      await supabaseAdmin.auth.getUser(accessToken);
 
-      const supabaseAdmin = createSupabaseAdminClient();
-      const { data: supabaseData, error: supabaseError } =
-        await supabaseAdmin.auth.getUser(accessToken);
-
-      if (supabaseError || !supabaseData.user?.email) {
-        return NextResponse.json(
-          { error: "Invalid or expired sign-in link" },
-          { status: 401 },
-        );
-      }
-
-      email = supabaseData.user.email.toLowerCase().trim();
+    if (supabaseError || !supabaseData.user?.email) {
+      return NextResponse.json(
+        { error: "Invalid or expired sign-in link" },
+        { status: 401 },
+      );
     }
 
+    const email = supabaseData.user.email.toLowerCase().trim();
     const user = await getUserByEmail(email);
 
     if (!user) {
@@ -51,13 +35,6 @@ export async function POST(request: NextRequest) {
           error:
             "Your account is not provisioned in this workspace yet. Ask an admin to invite you first.",
         },
-        { status: 401 },
-      );
-    }
-
-    if (email && !(await verifyPassword(password, user.password))) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
         { status: 401 },
       );
     }

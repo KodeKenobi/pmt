@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import CreateTicketModal from "@/components/CreateTicketModal";
 import type {
   CreateTicketPayload,
@@ -29,6 +30,7 @@ import {
   Trash2,
   ListTodo,
   Filter,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { onRealtimeChange } from "@/lib/realtime-events";
@@ -77,6 +79,14 @@ interface WorkloadUser {
   name: string;
   email: string;
   role: string;
+}
+
+function formatRoleLabel(role: string): string {
+  return role
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 type MemberDetailMetric =
@@ -129,44 +139,44 @@ const statusConfig = {
   REFINE: {
     label: "Refine",
     color:
-      "bg-indigo-100 text-indigo-800 border border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: Filter,
-    bgColor: "bg-indigo-500/10",
+    bgColor: "bg-brand-600/10",
   },
   IN_PROGRESS: {
     label: "In Progress",
     color:
-      "bg-blue-100 text-blue-800 border border-blue-300 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: Zap,
-    bgColor: "bg-blue-500/10",
+    bgColor: "bg-brand-600/10",
   },
   IN_REVIEW: {
     label: "In Review",
     color:
-      "bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-500/20 dark:text-cyan-400 dark:border-cyan-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: Eye,
-    bgColor: "bg-cyan-500/10",
+    bgColor: "bg-brand-600/10",
   },
   QA: {
     label: "QA",
     color:
-      "bg-orange-100 text-orange-800 border border-orange-300 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: AlertCircle,
-    bgColor: "bg-orange-500/10",
+    bgColor: "bg-brand-600/10",
   },
   REVISIONS: {
     label: "Revisions",
     color:
-      "bg-yellow-100 text-yellow-900 border border-yellow-400 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: AlertCircle,
-    bgColor: "bg-yellow-500/10",
+    bgColor: "bg-brand-600/10",
   },
   COMPLETE: {
     label: "Complete",
     color:
-      "bg-green-100 text-green-800 border border-green-300 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
+      "bg-brand-100 text-brand-800 border border-brand-300 dark:bg-brand-600/20 dark:text-brand-300 dark:border-brand-500/30",
     icon: CheckCircle2,
-    bgColor: "bg-green-500/10",
+    bgColor: "bg-brand-600/10",
   },
   CLIENT_REVIEW: {
     label: "Client Review",
@@ -704,7 +714,7 @@ export default function WorkloadPage() {
     { value: "__all__", label: "All employees" },
     ...workloadUsers.map((workloadUser) => ({
       value: workloadUser.id,
-      label: `${workloadUser.name} (${workloadUser.role})`,
+      label: workloadUser.name,
     })),
   ];
 
@@ -773,23 +783,23 @@ export default function WorkloadPage() {
     assigned: {
       title: "Assigned tickets",
       description: "All tickets currently assigned to this member.",
-      tone: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-300",
+      tone: "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/40 dark:bg-brand-950/20 dark:text-brand-300",
     },
     done: {
       title: "Completed tickets",
       description: "Tickets this member has already finished.",
-      tone: "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-300",
+      tone: "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/40 dark:bg-brand-950/20 dark:text-brand-300",
     },
     inProgress: {
       title: "In progress tickets",
       description: "Tickets actively being worked on right now.",
-      tone: "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-300",
+      tone: "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/40 dark:bg-brand-950/20 dark:text-brand-300",
     },
     review: {
       title: "Review tickets",
       description:
         "Tickets in internal review or client review for this member.",
-      tone: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300",
+      tone: "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/40 dark:bg-brand-950/20 dark:text-brand-300",
     },
     overdue: {
       title: "Overdue tickets",
@@ -865,7 +875,7 @@ export default function WorkloadPage() {
 
           <div className="flex items-center gap-3">
             {!isSuperAdmin && (
-              <div className="flex rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-0.5 shadow-sm dark:border-gray-800 dark:bg-[#1c1c24]">
+              <div className="flex rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-0.5 shadow-sm dark:border-gray-800 dark:bg-[#1A1F2E]">
                 <button
                   type="button"
                   onClick={() => setSelectedView("kanban")}
@@ -906,7 +916,7 @@ export default function WorkloadPage() {
 
         {isSuperAdmin && (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#1A1F2E]">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 Scope
               </p>
@@ -916,19 +926,19 @@ export default function WorkloadPage() {
                   : selectedWorkloadUser?.name || "Selected employee"}
               </p>
             </div>
-            <div className="rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3 shadow-sm dark:border-blue-900/40 dark:bg-blue-900/10">
-              <p className="text-xs uppercase tracking-wide text-blue-700 dark:text-blue-300">
+            <div className="rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 shadow-sm dark:border-brand-500/40 dark:bg-brand-900/10">
+              <p className="text-xs uppercase tracking-wide text-brand-700 dark:text-brand-300">
                 Total assigned
               </p>
-              <p className="mt-1 text-2xl font-semibold text-blue-800 dark:text-blue-200">
+              <p className="mt-1 text-2xl font-semibold text-brand-800 dark:text-brand-200">
                 {filteredTickets.length}
               </p>
             </div>
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 shadow-sm dark:border-indigo-900/40 dark:bg-indigo-900/10">
-              <p className="text-xs uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+            <div className="rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 shadow-sm dark:border-brand-500/40 dark:bg-brand-900/10">
+              <p className="text-xs uppercase tracking-wide text-brand-700 dark:text-brand-300">
                 In progress
               </p>
-              <p className="mt-1 text-2xl font-semibold text-indigo-800 dark:text-indigo-200">
+              <p className="mt-1 text-2xl font-semibold text-brand-800 dark:text-brand-200">
                 {inProgressCount}
               </p>
             </div>
@@ -940,25 +950,17 @@ export default function WorkloadPage() {
                 {overdueCount}
               </p>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 shadow-sm dark:border-amber-900/40 dark:bg-amber-900/10 sm:col-span-2 xl:col-span-4">
-              <p className="text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">
-                Awaiting client review
-              </p>
-              <p className="mt-1 text-2xl font-semibold text-amber-800 dark:text-amber-200">
-                {clientReviewCount}
-              </p>
-            </div>
           </div>
         )}
 
         {isSuperAdmin ? (
-          <div className="grid gap-4 border border-indigo-200 bg-indigo-50/40 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20 lg:grid-cols-2">
+          <div className="grid gap-4 border border-brand-200 bg-brand-50/40 p-4 dark:border-brand-500/40 dark:bg-brand-950/20 lg:grid-cols-2">
             <div className="space-y-3">
               <div>
-                <h2 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+                <h2 className="text-sm font-semibold text-brand-900 dark:text-brand-200">
                   Ticket selector operations
                 </h2>
-                <p className="mt-1 text-xs text-indigo-800/90 dark:text-indigo-300/90">
+                <p className="mt-1 text-xs text-brand-800/90 dark:text-brand-300/90">
                   Backfill selector IDs for old tickets before linking legacy
                   PRs.
                 </p>
@@ -969,7 +971,7 @@ export default function WorkloadPage() {
                   void runSelectorBackfill();
                 }}
                 disabled={opsBusy}
-                className="inline-flex items-center gap-2 border border-indigo-300 bg-white px-3 py-2 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-60 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50"
+                className="inline-flex items-center gap-2 border border-brand-300 bg-white px-3 py-2 text-xs font-semibold text-brand-900 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-700 dark:bg-brand-900/30 dark:text-brand-200 dark:hover:bg-brand-900/50"
               >
                 {opsBusy ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -980,10 +982,10 @@ export default function WorkloadPage() {
 
             <div className="space-y-3">
               <div>
-                <h2 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+                <h2 className="text-sm font-semibold text-brand-900 dark:text-brand-200">
                   Link existing PR to ticket
                 </h2>
-                <p className="mt-1 text-xs text-indigo-800/90 dark:text-indigo-300/90">
+                <p className="mt-1 text-xs text-brand-800/90 dark:text-brand-300/90">
                   Use selector ID + owner/repo + PR number.
                 </p>
               </div>
@@ -1051,7 +1053,7 @@ export default function WorkloadPage() {
                   void assignExistingPr();
                 }}
                 disabled={opsBusy}
-                className="inline-flex items-center gap-2 border border-indigo-300 bg-white px-3 py-2 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-60 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50"
+                className="inline-flex items-center gap-2 border border-brand-300 bg-white px-3 py-2 text-xs font-semibold text-brand-900 hover:bg-brand-100 disabled:opacity-60 dark:border-brand-700 dark:bg-brand-900/30 dark:text-brand-200 dark:hover:bg-brand-900/50"
               >
                 {opsBusy ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1068,14 +1070,14 @@ export default function WorkloadPage() {
               "rounded-xl border p-3 text-sm",
               opsError
                 ? "border-red-300 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
-                : "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300",
+                : "border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-900/50 dark:bg-brand-950/20 dark:text-brand-300",
             )}
           >
             {opsError || opsMessage}
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
           <div className="flex flex-col lg:flex-row lg:items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-500 w-4 h-4" />
@@ -1088,7 +1090,7 @@ export default function WorkloadPage() {
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border-2 border-brand-400 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 transition focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-brand-600 dark:bg-[#1c1c24] dark:text-white"
+                className="w-full rounded-lg border-2 border-brand-400 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 transition focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-brand-600 dark:bg-[#1A1F2E] dark:text-white"
               />
             </div>
 
@@ -1100,7 +1102,7 @@ export default function WorkloadPage() {
                   options={workloadUserOptions}
                   placeholder="Employee"
                   className="min-w-[240px]"
-                  triggerClassName="bg-blue-100/60 border-2 border-blue-400 dark:bg-blue-950/40 dark:border-blue-700"
+                  triggerClassName="bg-brand-100/60 border-2 border-brand-400 dark:bg-brand-950/40 dark:border-brand-700"
                 />
               )}
 
@@ -1110,7 +1112,7 @@ export default function WorkloadPage() {
                 options={statusFilterOptions}
                 placeholder="Status"
                 className="min-w-[200px]"
-                triggerClassName="bg-purple-100/60 border-2 border-purple-400 dark:bg-purple-950/40 dark:border-purple-700"
+                triggerClassName="bg-brand-100/60 border-2 border-brand-400 dark:bg-brand-950/40 dark:border-brand-700"
               />
 
               <SelectMenu
@@ -1119,7 +1121,7 @@ export default function WorkloadPage() {
                 options={priorityFilterOptions}
                 placeholder="Priority"
                 className="min-w-[180px]"
-                triggerClassName="bg-orange-100/60 border-2 border-orange-400 dark:bg-orange-950/40 dark:border-orange-700"
+                triggerClassName="bg-brand-100/60 border-2 border-brand-400 dark:bg-brand-950/40 dark:border-brand-700"
               />
             </div>
           </div>
@@ -1139,20 +1141,17 @@ export default function WorkloadPage() {
           </div>
         ) : isSuperAdmin ? (
           memberWorkloadCards.length === 0 ? (
-            <div className="text-center py-12 bg-white/80 dark:bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-200/80 dark:border-gray-800/50">
-              <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
-                No team members match this view
-              </p>
-              <p className="text-gray-500 dark:text-gray-500 text-sm mb-4">
-                Try changing assignee, status, or priority filters.
-              </p>
-            </div>
+            <EmptyState
+              title="No team members found"
+              description="Try changing the assignee, status, or priority filters."
+              icon={<Users className="h-6 w-6" aria-hidden="true" />}
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {memberWorkloadCards.map((member) => (
                 <div
                   key={member.id}
-                  className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#1c1c24]"
+                  className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#1A1F2E]"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <div>
@@ -1164,7 +1163,7 @@ export default function WorkloadPage() {
                       </p>
                     </div>
                     <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                      {member.role}
+                      {formatRoleLabel(member.role)}
                     </span>
                   </div>
 
@@ -1178,12 +1177,12 @@ export default function WorkloadPage() {
                           metric: "assigned",
                         });
                       }}
-                      className="rounded-lg bg-blue-50 p-2 text-left transition hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
+                      className="rounded-lg bg-brand-50 p-2 text-left transition hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30"
                     >
-                      <p className="text-blue-700 dark:text-blue-300">
+                      <p className="text-brand-700 dark:text-brand-300">
                         Assigned
                       </p>
-                      <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                      <p className="text-lg font-semibold text-brand-800 dark:text-brand-200">
                         {member.assignedCount}
                       </p>
                     </button>
@@ -1196,10 +1195,10 @@ export default function WorkloadPage() {
                           metric: "done",
                         });
                       }}
-                      className="rounded-lg bg-green-50 p-2 text-left transition hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30"
+                      className="rounded-lg bg-brand-50 p-2 text-left transition hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30"
                     >
-                      <p className="text-green-700 dark:text-green-300">Done</p>
-                      <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                      <p className="text-brand-700 dark:text-brand-300">Done</p>
+                      <p className="text-lg font-semibold text-brand-800 dark:text-brand-200">
                         {member.doneCount}
                       </p>
                     </button>
@@ -1212,12 +1211,12 @@ export default function WorkloadPage() {
                           metric: "inProgress",
                         });
                       }}
-                      className="rounded-lg bg-indigo-50 p-2 text-left transition hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30"
+                      className="rounded-lg bg-brand-50 p-2 text-left transition hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30"
                     >
-                      <p className="text-indigo-700 dark:text-indigo-300">
+                      <p className="text-brand-700 dark:text-brand-300">
                         In progress
                       </p>
-                      <p className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">
+                      <p className="text-lg font-semibold text-brand-800 dark:text-brand-200">
                         {member.inProgressCountByMember}
                       </p>
                     </button>
@@ -1230,12 +1229,12 @@ export default function WorkloadPage() {
                           metric: "review",
                         });
                       }}
-                      className="rounded-lg bg-amber-50 p-2 text-left transition hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/30"
+                      className="rounded-lg bg-brand-50 p-2 text-left transition hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30"
                     >
-                      <p className="text-amber-700 dark:text-amber-300">
+                      <p className="text-brand-700 dark:text-brand-300">
                         Review
                       </p>
-                      <p className="text-lg font-semibold text-amber-800 dark:text-amber-200">
+                      <p className="text-lg font-semibold text-brand-800 dark:text-brand-200">
                         {member.reviewCount}
                       </p>
                     </button>
@@ -1317,18 +1316,19 @@ export default function WorkloadPage() {
             </div>
           )
         ) : filteredTickets.length === 0 ? (
-          <div className="text-center py-12 bg-white/80 dark:bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-200/80 dark:border-gray-800/50">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
-              {isSuperAdmin
+          <EmptyState
+            title={
+              isSuperAdmin
                 ? "No tickets for this view"
-                : "No tickets in your workload"}
-            </p>
-            <p className="text-gray-500 dark:text-gray-500 text-sm mb-4">
-              {isSuperAdmin
+                : "No tickets in your workload"
+            }
+            description={
+              isSuperAdmin
                 ? "Select an employee to see all tickets assigned to them."
-                : "Tickets assigned to you will appear here."}
-            </p>
-          </div>
+                : "Tickets assigned to you will appear here."
+            }
+            icon={<ListTodo className="h-6 w-6" aria-hidden="true" />}
+          />
         ) : selectedView === "kanban" ? (
           <KanbanBoard
             tickets={filteredTickets}
@@ -1511,7 +1511,7 @@ export default function WorkloadPage() {
         />
         {memberDetailModal ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
-            <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-[#11131a]">
+            <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-[#0F1419]">
               <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5 dark:border-gray-800">
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">

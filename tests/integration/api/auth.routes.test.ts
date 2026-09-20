@@ -36,6 +36,12 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
+import { createSupabaseAdminClient } from "@/lib/supabase";
+
+const createSupabaseAdminClientMock = createSupabaseAdminClient as jest.MockedFunction<
+  typeof createSupabaseAdminClient
+>;
+
 const getUserByEmailMock = getUserByEmail as jest.MockedFunction<
   typeof getUserByEmail
 >;
@@ -57,7 +63,7 @@ describe("Auth routes", () => {
     jest.clearAllMocks();
   });
 
-  it("POST /api/auth/login returns 400 when email and access token are missing", async () => {
+  it("POST /api/auth/login returns 400 when access token is missing", async () => {
     const request = new NextRequest("http://localhost/api/auth/login", {
       method: "POST",
       body: JSON.stringify({}),
@@ -68,15 +74,23 @@ describe("Auth routes", () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.error).toMatch(/Email or access token is required/i);
+    expect(body.error).toMatch(/Access token is required/i);
   });
 
-  it("POST /api/auth/login returns 401 when user is not provisioned", async () => {
-    getUserByEmailMock.mockResolvedValue(null);
+  it("POST /api/auth/login returns 401 when Supabase token is invalid", async () => {
+    const supabaseMock = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: null },
+          error: new Error("Invalid token"),
+        }),
+      },
+    };
+    createSupabaseAdminClientMock.mockReturnValue(supabaseMock as any);
 
     const request = new NextRequest("http://localhost/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email: "new.user@e-t.co.za" }),
+      body: JSON.stringify({ accessToken: "invalid-token" }),
       headers: { "Content-Type": "application/json" },
     });
 
@@ -89,11 +103,23 @@ describe("Auth routes", () => {
     const baseUser = {
       id: "u-1",
       name: "Dev User",
-      email: "dev@e-t.co.za",
+      email: "dev@lighthousemediagroup.com",
       phone: null,
       role: "USER",
       teamId: "team-1",
     };
+
+    const supabaseMock = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: {
+            user: { email: "dev@lighthousemediagroup.com" },
+          },
+          error: null,
+        }),
+      },
+    };
+    createSupabaseAdminClientMock.mockReturnValue(supabaseMock as any);
 
     getUserByEmailMock.mockResolvedValue(baseUser as any);
     isInternalStaffEmailMock.mockReturnValue(true);
@@ -105,7 +131,7 @@ describe("Auth routes", () => {
 
     const request = new NextRequest("http://localhost/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email: "dev@e-t.co.za" }),
+      body: JSON.stringify({ accessToken: "valid-token" }),
       headers: { "Content-Type": "application/json" },
     });
 
@@ -113,7 +139,7 @@ describe("Auth routes", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.user.email).toBe("dev@e-t.co.za");
+    expect(body.user.email).toBe("dev@lighthousemediagroup.com");
     expect(response.headers.get("set-cookie") || "").toContain("userId=u-1");
   });
 
@@ -132,7 +158,7 @@ describe("Auth routes", () => {
     getUserFromRequestMock.mockResolvedValue({
       id: "u-1",
       name: "Dev User",
-      email: "dev@e-t.co.za",
+      email: "dev@lighthousemediagroup.com",
       phone: null,
       role: "USER",
       teamId: "team-1",

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
@@ -17,7 +18,6 @@ import {
   Menu,
   X,
   Settings,
-  User,
   ChevronDown,
   ChevronRight,
   Power,
@@ -32,9 +32,6 @@ import {
   MessageSquare,
   Info,
   ArrowUpRight,
-  Download,
-  Monitor,
-  Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -66,26 +63,6 @@ import type { AppNotification } from "@/store/types";
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-
-type UpdateStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "downloading"
-  | "downloaded"
-  | "error";
-
-type ElectronAPI = {
-  getPlatform: () => Promise<string>;
-  getAppVersion: () => Promise<string>;
-  onUpdateAvailable: (cb: (info: { version?: string }) => void) => () => void;
-  onUpdateDownloaded: (cb: (info: { version?: string }) => void) => () => void;
-  onUpdateProgress: (
-    cb: (progress: { percent?: number }) => void,
-  ) => () => void;
-  checkForUpdates: () => Promise<{ version: string | null }>;
-  installUpdate: () => Promise<void>;
-};
 
 // ── Notification grouping ────────────────────────────────────────────────────
 const NOTIF_GROUPS: {
@@ -441,7 +418,7 @@ function NotificationPanel({
     });
 
   return (
-    <div className="absolute right-0 top-12 z-50 flex w-[min(100vw-1rem,26rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700/60 dark:bg-[#16161f]">
+    <div className="absolute right-0 top-12 z-50 flex w-[min(100vw-1rem,26rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700/60 dark:bg-[#1A1F2E]">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
@@ -627,15 +604,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [logoutBusy, setLogoutBusy] = useState(false);
-  const [platform, setPlatform] = useState<string | null>(null);
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle");
-  const [updatePercent, setUpdatePercent] = useState<number>(0);
-  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
-  const [updateNote, setUpdateNote] = useState<string>("");
   const notifications = useAppSelector(selectNotifications);
   const notificationsStatus = useAppSelector(selectNotificationsStatus);
 
   const { user, logout } = useAuth();
+  const readableRole = (user?.role ?? "")
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
   const { theme, toggleTheme } = useTheme();
   const {
     teams,
@@ -683,16 +660,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     [user?.role],
   );
   const pathname = usePathname();
-  const downloadUrl =
-    process.env.NEXT_PUBLIC_WINDOWS_DOWNLOAD_URL ||
-    "https://github.com/enable/project-management-tool/releases/latest";
-
-  const electronAPI: ElectronAPI | undefined =
-    typeof window !== "undefined"
-      ? (window as Window & { electronAPI?: ElectronAPI }).electronAPI
-      : undefined;
-  const isElectronRuntime = Boolean(electronAPI);
-  const isWindowsRuntime = platform === "win32";
 
   const isNavActive = useCallback(
     (item: NavItem): boolean => {
@@ -743,48 +710,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     return unsubscribe;
   }, [user, isClient, dispatch]);
-
-  useEffect(() => {
-    if (!electronAPI) return;
-
-    let mounted = true;
-    void electronAPI
-      .getPlatform()
-      .then((value) => {
-        if (mounted) setPlatform(value);
-      })
-      .catch(() => {
-        if (mounted) setPlatform(null);
-      });
-
-    const offAvailable = electronAPI.onUpdateAvailable((info) => {
-      setUpdateStatus("available");
-      setUpdateVersion(info?.version ?? null);
-      setUpdateNote("Update found. Downloading in background...");
-    });
-
-    const offProgress = electronAPI.onUpdateProgress((progress) => {
-      setUpdateStatus("downloading");
-      setUpdatePercent(
-        Math.max(0, Math.min(100, Math.round(progress?.percent ?? 0))),
-      );
-      setUpdateNote("Downloading update...");
-    });
-
-    const offDownloaded = electronAPI.onUpdateDownloaded((info) => {
-      setUpdateStatus("downloaded");
-      setUpdatePercent(100);
-      setUpdateVersion(info?.version ?? null);
-      setUpdateNote("Update downloaded. Restart to install.");
-    });
-
-    return () => {
-      mounted = false;
-      offAvailable?.();
-      offProgress?.();
-      offDownloaded?.();
-    };
-  }, [electronAPI]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const monitoringAlertCount = notifications.filter((n) => {
@@ -841,40 +766,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
-  const handleHeaderDownloadClick = async () => {
-    if (isElectronRuntime && isWindowsRuntime) {
-      if (updateStatus === "downloaded") {
-        try {
-          await electronAPI?.installUpdate();
-        } catch {
-          setUpdateStatus("error");
-          setUpdateNote("Could not install update. Try again.");
-        }
-        return;
-      }
-
-      setUpdateStatus("checking");
-      setUpdateNote("Checking for updates...");
-      try {
-        const result = await electronAPI?.checkForUpdates();
-        if (result?.version) {
-          setUpdateStatus("available");
-          setUpdateVersion(result.version);
-          setUpdateNote("Update found. Downloading in background...");
-        } else {
-          setUpdateStatus("idle");
-          setUpdateNote("");
-        }
-      } catch {
-        setUpdateStatus("error");
-        setUpdateNote("Update check is unavailable in development mode.");
-      }
-      return;
-    }
-
-    window.open(downloadUrl, "_blank", "noopener,noreferrer");
-  };
-
   if (!user) {
     return null;
   }
@@ -892,7 +783,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
-        <div className="fixed left-0 top-0 h-full w-64 border-r border-[var(--border)] bg-gradient-to-b from-slate-50/95 to-[var(--sidebar)] dark:border-gray-800 dark:from-[#16161c] dark:to-[#13131a]">
+        <div className="lighthouse-sidebar dark fixed left-0 top-0 flex h-full w-64 flex-col border-r border-[var(--border)] bg-[#05172C] [&_nav_*]:!text-white [&_nav_svg]:!text-white">
           <div className="flex items-center justify-between border-b border-[var(--border)] p-4 dark:border-gray-800">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -910,18 +801,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Mobile Search */}
           <div className="border-b border-[var(--border)] p-4 dark:border-gray-800">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
               <input
                 type="text"
                 placeholder="Search…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/15 dark:border-gray-700 dark:bg-gray-900/80 dark:text-white dark:focus:bg-gray-900"
+                className="w-full rounded-md border border-white/30 bg-white/10 py-2 pl-10 pr-4 text-sm text-white placeholder-white/70 outline-none transition focus:border-white focus:bg-white/15 focus:ring-2 focus:ring-white/25"
               />
             </form>
           </div>
 
-          <nav className="flex-1 space-y-0.5 p-3">
+          <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               const isExpanded =
@@ -1161,7 +1052,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user.name}
                 </p>
                 <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                  {user.role}
+                  {readableRole}
                 </p>
               </div>
               <button
@@ -1178,31 +1069,32 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64">
-        <div className="flex h-full flex-col border-r border-[var(--border)] bg-gradient-to-b from-slate-50/95 to-[var(--sidebar)] dark:border-gray-800 dark:from-[#16161c] dark:to-[#13131a]">
-          <div className="h-20 flex items-center gap-2 border-b border-[var(--border)] p-4 dark:border-gray-800">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Lighthouse
-              <br />
-              <span className="-mt-1 block text-sm font-normal text-gray-500 dark:text-gray-400">
-                Project Management Tool
-              </span>
-            </h1>
+        <div className="lighthouse-sidebar dark flex h-full flex-col border-r border-[var(--border)] bg-[#05172C] [&_nav_*]:!text-white [&_nav_svg]:!text-white">
+          <div className="flex h-28 items-center justify-center border-b border-[var(--border)] p-4 dark:border-gray-800">
+            <Image
+              src="/lighthouse-logo.png"
+              alt="Lighthouse Project Management"
+              width={80}
+              height={80}
+              priority
+              className="h-20 w-20"
+            />
           </div>
 
           <div className="border-b border-[var(--border)] p-4 dark:border-gray-800">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white" />
               <input
                 type="text"
                 placeholder="Search…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/15 dark:border-gray-700 dark:bg-gray-900/80 dark:text-white dark:focus:bg-gray-900"
+                className="w-full rounded-md border border-white/30 bg-white/10 py-2 pl-10 pr-4 text-sm text-white placeholder-white/70 outline-none transition focus:border-white focus:bg-white/15 focus:ring-2 focus:ring-white/25"
               />
             </form>
           </div>
 
-          <nav className="flex-1 space-y-0.5 p-3">
+          <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               const isExpanded =
@@ -1431,7 +1323,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user.name}
                 </p>
                 <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                  {user.role}
+                  {readableRole}
                 </p>
               </div>
               <button
@@ -1447,20 +1339,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <div className="absolute bottom-16 left-3 right-3 overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-card dark:border-gray-700 dark:bg-[#1c1c24]">
+              <div className="absolute bottom-16 left-3 right-3 overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-card dark:border-gray-700 dark:bg-[#1A1F2E]">
                 <div className="space-y-0.5 p-2">
                   <Link
                     href="/settings"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
-                  >
-                    <User className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">Profile</span>
-                  </Link>
-                  <Link
-                    href="/settings"
-                    onClick={() => setShowUserMenu(false)}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm !text-gray-900 transition-colors hover:bg-gray-50 dark:!text-white dark:hover:bg-white/5"
                   >
                     <Settings className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">Settings</span>
@@ -1468,7 +1352,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm !text-gray-900 transition-colors hover:bg-gray-50 dark:!text-white dark:hover:bg-white/5"
                   >
                     {theme === "light" ? (
                       <Moon className="h-4 w-4 text-gray-500" />
@@ -1497,13 +1381,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Top bar */}
       <div className="lg:pl-64">
-        <div className="fixed left-0 right-0 top-0 z-40 border-b border-[var(--border)] bg-[var(--surface-elevated)]/95 backdrop-blur-md dark:border-gray-800 dark:bg-[#16161c]/95 lg:left-64">
+        <div className="fixed left-0 right-0 top-0 z-40 border-b border-[var(--border)] bg-[var(--surface-elevated)]/95 backdrop-blur-md dark:border-gray-800 dark:bg-[#1A1F2E]/95 lg:left-64">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6">
             {/* Left side - Navigation and Search */}
             <div className="flex items-center space-x-6">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-gray-700 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+                className="lg:hidden text-gray-700 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -1537,7 +1421,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Mobile Search */}
               <div className="lg:hidden">
-                <button className="text-gray-700 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-lg">
+                <button className="text-gray-700 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
                   <Search className="w-5 h-5" />
                 </button>
               </div>
@@ -1545,36 +1429,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Right side - Actions and User */}
             <div className="flex items-center space-x-4">
-              <button
-                type="button"
-                onClick={() => {
-                  void handleHeaderDownloadClick();
-                }}
-                className="group inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-200 dark:hover:bg-gray-900"
-                title={
-                  isElectronRuntime && isWindowsRuntime
-                    ? updateStatus === "downloaded"
-                      ? "Restart and install update"
-                      : "Check for updates"
-                    : "Download for Windows"
-                }
-              >
-                {updateStatus === "checking" ||
-                updateStatus === "downloading" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Download className="h-3.5 w-3.5" />
-                )}
-                <Monitor className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
-                <span className="hidden sm:inline">
-                  {isElectronRuntime && isWindowsRuntime
-                    ? updateStatus === "downloaded"
-                      ? "Restart to Update"
-                      : "Windows Update"
-                    : "Windows App"}
-                </span>
-              </button>
-
               {user?.role !== "SUPER_ADMIN" && !isClient ? (
                 <div className="relative">
                   <button
@@ -1656,50 +1510,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
 
-          {updateStatus !== "idle" && (
-            <div className="flex items-center justify-between gap-3 border-t border-gray-200/80 bg-gradient-to-r from-sky-50 to-cyan-50 px-4 py-2 text-xs dark:border-gray-800 dark:from-sky-950/25 dark:to-cyan-950/20 sm:px-6">
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-sky-900 dark:text-sky-200">
-                  {updateStatus === "checking" && "Checking for updates"}
-                  {updateStatus === "available" && "Update available"}
-                  {updateStatus === "downloading" &&
-                    `Downloading update ${updatePercent}%`}
-                  {updateStatus === "downloaded" && "Ready to install"}
-                  {updateStatus === "error" && "Update check failed"}
-                  {updateVersion ? ` v${updateVersion}` : ""}
-                </p>
-                {updateNote ? (
-                  <p className="truncate text-sky-700 dark:text-sky-300/90">
-                    {updateNote}
-                  </p>
-                ) : null}
-              </div>
-              <div className="flex items-center gap-2">
-                {updateStatus === "downloaded" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void handleHeaderDownloadClick();
-                    }}
-                    className="rounded-md bg-sky-600 px-2 py-1 font-semibold text-white hover:bg-sky-700"
-                  >
-                    Restart now
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUpdateStatus("idle");
-                    setUpdateNote("");
-                    setUpdatePercent(0);
-                  }}
-                  className="rounded-md border border-sky-300 px-2 py-1 font-medium text-sky-800 hover:bg-sky-100 dark:border-sky-700 dark:text-sky-200 dark:hover:bg-sky-900/30"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { MonitoringTabs } from "@/components/MonitoringTabs";
 import { SelectMenu } from "@/components/SelectMenu";
 import { useAuth } from "@/contexts/AuthContext";
@@ -567,9 +568,12 @@ export default function WorkflowsPage() {
               <SkeletonLine className="h-14 w-full rounded-none" />
             </div>
           ) : workflows.length === 0 ? (
-            <div className="p-6 text-sm text-gray-500">
-              No workflows found for this repository.
-            </div>
+            <EmptyState
+              title="No workflows found"
+              description="This repository has no GitHub Actions workflows."
+              icon={<Workflow className="h-6 w-6" aria-hidden="true" />}
+              className="border-0 bg-transparent shadow-none"
+            />
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {workflows.map((wf) => {
@@ -674,9 +678,12 @@ export default function WorkflowsPage() {
           </div>
 
           {runs.length === 0 ? (
-            <div className="p-6 text-sm text-gray-500">
-              No workflow runs yet for this repository.
-            </div>
+            <EmptyState
+              title="No workflow runs yet"
+              description="Workflow activity will appear here after the first run."
+              icon={<Workflow className="h-6 w-6" aria-hidden="true" />}
+              className="border-0 bg-transparent shadow-none"
+            />
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {runs.map((run) => (

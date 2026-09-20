@@ -904,18 +904,18 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
     return (
       <DashboardLayout>
         <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1c1c24]">
+          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
             <SkeletonText className="h-7 w-2/5" />
             <SkeletonLine className="mt-3 h-4 w-3/5" />
           </div>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
               <SkeletonLine className="h-4 w-1/4" />
               <SkeletonLine className="h-4 w-full" />
               <SkeletonLine className="h-4 w-11/12" />
               <SkeletonLine className="h-4 w-4/5" />
             </div>
-            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
               <SkeletonDropdown className="w-full" />
               <SkeletonDropdown className="w-full" />
               <SkeletonDropdown className="w-full" />
@@ -929,8 +929,30 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center py-24">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-brand-600" />
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
+          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
+            <SkeletonText className="h-7 w-2/5" />
+            <SkeletonLine className="mt-3 h-4 w-3/5" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
+              <SkeletonLine className="h-4 w-1/4" />
+              <SkeletonLine className="h-4 w-full" />
+              <SkeletonLine className="h-4 w-11/12" />
+              <SkeletonLine className="h-4 w-4/5" />
+              <div className="mt-8 space-y-4">
+                <SkeletonLine className="h-4 w-1/3" />
+                <SkeletonLine className="h-32 w-full" />
+              </div>
+            </div>
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
+              <SkeletonDropdown className="w-full" />
+              <SkeletonDropdown className="w-full" />
+              <SkeletonDropdown className="w-full" />
+              <SkeletonDropdown className="w-full" />
+              <SkeletonDropdown className="w-full" />
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -1322,7 +1344,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
-            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
                 Description
               </h2>
@@ -1343,7 +1365,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">
@@ -1482,7 +1504,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
               )}
             </section>
 
-            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
                 Acceptance Criteria (QA)
               </h2>
@@ -1504,7 +1526,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
             </section>
 
             {/* GitHub Integration Section */}
-            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24] space-y-6">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E] space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-800 dark:text-slate-200">
@@ -1802,7 +1824,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
               </div>
             </section>
 
-            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <div className="mb-4 flex items-center gap-2">
                 <Activity className="h-5 w-5 text-brand-600" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">
@@ -1873,7 +1895,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
             </section>
 
             <section className="space-y-6">
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
                 <div className="mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-brand-600" />
                   <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500">
@@ -1906,7 +1928,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
                 )}
               </div>
               {canEdit && (
-                <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 dark:border-gray-800 dark:bg-[#1c1c24]">
+                <div className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 dark:border-gray-800 dark:bg-[#1A1F2E]">
                   <TipTapEditor
                     content={commentText}
                     setContent={setCommentText}
@@ -1925,7 +1947,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <h3 className="mb-3 text-xs font-bold uppercase text-gray-500">
                 Edit fields
               </h3>
@@ -2152,7 +2174,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
               {saving && <p className="mt-2 text-xs text-gray-500">Saving…</p>}
             </div>
 
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <div className="mb-3 flex items-center gap-2">
                 <Paperclip className="h-4 w-4 text-brand-600" />
                 <h3 className="text-xs font-bold uppercase text-gray-500">
@@ -2226,7 +2248,7 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
 
       {activeAttachmentIndex !== null && (t.attachments?.length ?? 0) > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-gray-700 bg-[#0f1117]">
+          <div className="relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-gray-700 bg-[#0F1419]">
             <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
               <p className="truncate pr-3 text-sm font-medium text-gray-200">
                 {t.attachments?.[activeAttachmentIndex]?.filename}
@@ -2328,8 +2350,8 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
       {/* GitHub Modals */}
       {showBranchModal && activeRepo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#191922] dark:to-[#1c1c24]">
+          <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#1A1F2E] dark:to-[#1A1F2E]">
               <div className="flex items-center gap-2">
                 <GitBranch className="w-5 h-5 text-blue-500" />
                 <div>
@@ -2391,8 +2413,8 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
 
       {showPRModal && activeRepo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#191922] dark:to-[#1c1c24]">
+          <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#1A1F2E] dark:to-[#1A1F2E]">
               <div className="flex items-center gap-2">
                 <GitPullRequest className="w-5 h-5 text-red-500" />
                 <div>
@@ -2481,8 +2503,8 @@ export default function TicketWorkspace({ ticketId }: { ticketId: string }) {
 
       {showRepoModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1c1c24] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#191922] dark:to-[#1c1c24]">
+          <div className="bg-white dark:bg-[#1A1F2E] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#1A1F2E] dark:to-[#1A1F2E]">
               <div className="flex items-center gap-2">
                 <Github className="w-5 h-5 text-slate-800 dark:text-white" />
                 <div>

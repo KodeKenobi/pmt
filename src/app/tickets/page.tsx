@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { Pagination } from "@/components/Pagination";
 import CreateTicketModal from "@/components/CreateTicketModal";
 import type {
@@ -90,7 +91,7 @@ interface AssignableUser {
   email: string;
 }
 
-const EXCLUDED_ASSIGNEE_EMAILS = new Set<string>(["dev@e-t.co.za"]);
+const EXCLUDED_ASSIGNEE_EMAILS = new Set<string>(["dev@lighthousemediagroup.com"]);
 
 type ImportRowResult = {
   index: number;
@@ -189,7 +190,7 @@ const SAMPLE_IMPORT_JSON = `[
     "acceptanceCriteria": "Checklist signed off by ops lead.",
     "status": "BACKLOG",
     "priority": "MEDIUM",
-    "creatorEmail": "dev@e-t.co.za",
+    "creatorEmail": "dev@lighthousemediagroup.com",
     "assigneeEmail": null,
     "teamName": "Development",
     "clientEmail": null,
@@ -241,6 +242,10 @@ function TicketsPageContent() {
     Array<{ id: string; name: string; status: string }>
   >([]);
   const [loadingSprints, setLoadingSprints] = useState(false);
+  const [projects, setProjects] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
 
   useEffect(() => {
@@ -331,6 +336,42 @@ function TicketsPageContent() {
       }
     },
     [user, activeTeamId],
+  );
+
+  const fetchProjects = useCallback(
+    async (force = false) => {
+      if (!user || user.role === "CLIENT") {
+        setProjects([]);
+        return;
+      }
+
+      if (!activeTeamId || (user.role === "SUPER_ADMIN" && isAllTeams)) {
+        setProjects([]);
+        return;
+      }
+
+      try {
+        setLoadingProjects(true);
+        const data = await cachedGetJson<
+          Array<{
+            id: string;
+            name: string;
+          }>
+        >({
+          key: `tickets_projects:${activeTeamId}`,
+          url: `/api/projects?teamId=${activeTeamId}`,
+          staleMs: 60_000,
+          force,
+        });
+
+        setProjects(Array.isArray(data) ? data : []);
+      } catch {
+        setProjects([]);
+      } finally {
+        setLoadingProjects(false);
+      }
+    },
+    [user, activeTeamId, isAllTeams],
   );
 
   const fetchSprints = useCallback(
@@ -596,10 +637,66 @@ function TicketsPageContent() {
     }
   };
 
+  const handleProjectChange = async (
+    ticketId: string,
+    nextProjectId: string,
+  ) => {
+    const previousTickets = tickets;
+    try {
+      const projectId = nextProjectId === "" ? null : nextProjectId;
+      const selectedProject =
+        projectId === null
+          ? null
+          : (projects.find((proj) => proj.id === projectId) ?? null);
+
+      setError("");
+      setTickets((prev) =>
+        prev.map((ticket): Ticket => {
+          if (ticket.id !== ticketId) return ticket;
+
+          if (selectedProject) {
+            return {
+              ...ticket,
+              project: {
+                id: selectedProject.id,
+                name: selectedProject.name,
+              },
+            };
+          }
+
+          const { project: _project, ...rest } = ticket;
+          return rest as Ticket;
+        }),
+      );
+
+      const response = await fetch(`/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(
+          typeof body.error === "string"
+            ? body.error
+            : "Failed to update project",
+        );
+      }
+    } catch (err) {
+      setTickets(previousTickets);
+      setError(
+        err instanceof Error ? err.message : "Failed to update project",
+      );
+    }
+  };
+
   useEffect(() => {
     if (!user || user.role === "CLIENT") return;
-    void Promise.all([fetchAssignableUsers(), fetchSprints()]);
-  }, [user, activeTeamId, isAllTeams, fetchAssignableUsers, fetchSprints]);
+    void Promise.all([fetchAssignableUsers(), fetchSprints(), fetchProjects()]);
+  }, [user, activeTeamId, isAllTeams, fetchAssignableUsers, fetchSprints, fetchProjects]);
 
   useEffect(() => {
     if (sprintFilter === "__all__" || sprintFilter === "backlog") return;
@@ -977,17 +1074,11 @@ function TicketsPageContent() {
               ))}
             </div>
           ) : filteredTickets.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-gray-500 dark:text-gray-400" />
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                No tickets found
-              </p>
-              <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-                Try adjusting your search or filters
-              </p>
-            </div>
+            <EmptyState
+              title="No tickets found"
+              description="Try adjusting your search or filters."
+              icon={<Search className="h-6 w-6" aria-hidden="true" />}
+            />
           ) : (
             <>
               <div
@@ -1098,9 +1189,22 @@ function TicketsPageContent() {
                           />
                         </div>
 
-                        <div className="flex items-center space-x-2 text-sm text-gray-400">
-                          <ListTodo className="w-4 h-4" />
-                          <span>{ticket.project?.name || "No project"}</span>
+                        <div className="w-full">
+                          <SelectMenu
+                            value={ticket.project?.id ?? ""}
+                            onChange={(value) =>
+                              handleProjectChange(ticket.id, value)
+                            }
+                            options={[
+                              { value: "", label: "No project" },
+                              ...projects.map((proj) => ({
+                                value: proj.id,
+                                label: proj.name,
+                              })),
+                            ]}
+                            className="w-full"
+                            triggerClassName="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700/50 text-gray-900 dark:text-white"
+                          />
                         </div>
 
                         {ticket.sprint ? (
@@ -1203,119 +1307,127 @@ function TicketsPageContent() {
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={() => setShowImportModal(false)}
               />
-              <div className="relative w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#111217]">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      Import Tasks As Tickets
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Paste a JSON array, validate, then import.
-                    </p>
+              <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-[#0F1419]">
+                {/* Header */}
+                <div className="flex-shrink-0 border-b border-gray-200 p-6 dark:border-gray-800">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        Import Tasks As Tickets
+                      </h2>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Paste a JSON array, validate, then import.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowImportModal(false)}
+                      className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
+                    >
+                      Close
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowImportModal(false)}
-                    className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
-                  >
-                    Close
-                  </button>
                 </div>
 
-                <div className="mt-4">
-                  <textarea
-                    value={importPayload}
-                    onChange={(e) => setImportPayload(e.target.value)}
-                    className="h-64 w-full rounded-lg border border-gray-300 bg-gray-50 p-3 font-mono text-xs text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-100"
-                  />
-                </div>
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <textarea
+                        value={importPayload}
+                        onChange={(e) => setImportPayload(e.target.value)}
+                        className="h-48 w-full rounded-lg border border-gray-300 bg-gray-50 p-3 font-mono text-xs text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-100"
+                      />
+                    </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={loadSampleImportPayload}
-                    disabled={importBusy}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
-                  >
-                    Load Sample
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void executeImport(true);
-                    }}
-                    disabled={importBusy}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
-                  >
-                    Validate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void executeImport(false);
-                    }}
-                    disabled={importBusy}
-                    className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {importBusy ? "Working..." : "Import Tickets"}
-                  </button>
-                </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={loadSampleImportPayload}
+                        disabled={importBusy}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
+                      >
+                        Load Sample
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void executeImport(true);
+                        }}
+                        disabled={importBusy}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-white/5"
+                      >
+                        Validate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void executeImport(false);
+                        }}
+                        disabled={importBusy}
+                        className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {importBusy ? "Working..." : "Import Tickets"}
+                      </button>
+                    </div>
 
-                {importError && (
-                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                    {importError}
-                  </div>
-                )}
+                    {importError && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {importError}
+                      </div>
+                    )}
 
-                {importSummary && (
-                  <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200">
-                    total: {importSummary.total} · created:{" "}
-                    {importSummary.created} · validated:{" "}
-                    {importSummary.validated} · failed: {importSummary.failed} ·
-                    mode: {importSummary.dryRun ? "validate" : "import"}
-                  </div>
-                )}
+                    {importSummary && (
+                      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200">
+                        total: {importSummary.total} · created:{" "}
+                        {importSummary.created} · validated:{" "}
+                        {importSummary.validated} · failed: {importSummary.failed} ·
+                        mode: {importSummary.dryRun ? "validate" : "import"}
+                      </div>
+                    )}
 
-                {importRows.length > 0 && (
-                  <div className="mt-4 max-h-56 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-800">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-900/60">
-                        <tr>
-                          <th className="px-3 py-2">#</th>
-                          <th className="px-3 py-2">Title</th>
-                          <th className="px-3 py-2">Status</th>
-                          <th className="px-3 py-2">Message</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {importRows.map((row) => (
-                          <tr
-                            key={`${row.index}-${row.title}`}
-                            className="border-t border-gray-200 dark:border-gray-800"
-                          >
-                            <td className="px-3 py-2">{row.index + 1}</td>
-                            <td className="px-3 py-2">{row.title}</td>
-                            <td className="px-3 py-2">
-                              <span
-                                className={cn(
-                                  "rounded-full px-2 py-0.5 text-xs font-medium",
-                                  row.status === "error"
-                                    ? "bg-red-100 text-red-700"
-                                    : row.status === "created"
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-blue-100 text-blue-700",
-                                )}
+                    {importRows.length > 0 && (
+                      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-gray-50 dark:bg-gray-900/60">
+                            <tr>
+                              <th className="px-3 py-2">#</th>
+                              <th className="px-3 py-2">Title</th>
+                              <th className="px-3 py-2">Status</th>
+                              <th className="px-3 py-2">Message</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {importRows.map((row) => (
+                              <tr
+                                key={`${row.index}-${row.title}`}
+                                className="border-t border-gray-200 dark:border-gray-800"
                               >
-                                {row.status}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2">{row.message}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                <td className="px-3 py-2">{row.index + 1}</td>
+                                <td className="px-3 py-2">{row.title}</td>
+                                <td className="px-3 py-2">
+                                  <span
+                                    className={cn(
+                                      "rounded-full px-2 py-0.5 text-xs font-medium",
+                                      row.status === "error"
+                                        ? "bg-red-100 text-red-700"
+                                        : row.status === "created"
+                                          ? "bg-emerald-100 text-emerald-700"
+                                          : "bg-blue-100 text-blue-700",
+                                    )}
+                                  >
+                                    {row.status}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2">{row.message}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           )}

@@ -24,7 +24,7 @@ describe("src/app/api/feedback/route.ts", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fromEmail: "dev@e-t.co.za",
+        fromEmail: "dev@lighthousemediagroup.com",
         subject: "Client Feedback",
         message: "Please review attached files",
       }),

@@ -84,14 +84,20 @@ export function SelectMenu({
       const openUpward =
         spaceBelow < maxMenuHeight + 8 && spaceAbove > spaceBelow;
 
+      // Calculate scroll offsets for absolute positioning from document
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
       const top = openUpward
-        ? Math.max(viewportPadding, rect.top - measuredMenuHeight - 4)
-        : rect.bottom + 4;
+        ? Math.max(viewportPadding, rect.top + scrollTop - measuredMenuHeight - 4)
+        : rect.bottom + scrollTop + 4;
+
+      const left = rect.left + scrollLeft;
 
       setMenuStyle({
-        position: "fixed",
+        position: "absolute",
         top,
-        left: rect.left,
+        left,
         width: rect.width,
         zIndex: 1000,
         maxHeight: maxMenuHeight,
@@ -191,7 +197,7 @@ export function SelectMenu({
           "hover:bg-gray-50",
           "focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/20",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "dark:border-gray-700 dark:bg-[#1c1c24] dark:text-gray-100 dark:hover:bg-white/5",
+          "dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-gray-100 dark:hover:bg-white/5",
           size === "md" ? mdTrigger : smTrigger,
           triggerClassName,
         )}
@@ -201,7 +207,7 @@ export function SelectMenu({
         </span>
         <ChevronDown
           className={cn(
-            "shrink-0 text-slate-500 opacity-70",
+            "shrink-0 text-slate-500 opacity-70 dark:text-gray-400",
             size === "md" ? "h-4 w-4" : "h-3.5 w-3.5",
             open && "rotate-180",
           )}
@@ -219,7 +225,7 @@ export function SelectMenu({
             style={menuStyle}
             className={cn(
               "overflow-hidden rounded-md border border-[var(--border)] bg-white py-0.5 shadow-card",
-              "dark:border-gray-700 dark:bg-[#1c1c24]",
+              "dark:border-gray-700 dark:bg-[#1A1F2E]",
               menuClassName,
             )}
           >
@@ -235,7 +241,7 @@ export function SelectMenu({
                   className={cn(
                     "w-full rounded-md border border-gray-200 bg-white text-gray-900 outline-none",
                     "focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20",
-                    "dark:border-gray-700 dark:bg-[#1c1c24] dark:text-gray-100",
+                    "dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-gray-100",
                     size === "md" ? "px-3 py-2 text-sm" : "px-2 py-1.5 text-xs",
                   )}
                 />

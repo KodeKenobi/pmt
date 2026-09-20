@@ -8,7 +8,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SelectMenu } from "@/components/SelectMenu";
 import { onRealtimeChange } from "@/lib/realtime-events";
-import { SkeletonLine } from "@/components/ui/Skeleton";
+import { SkeletonLine, SkeletonCard } from "@/components/ui/Skeleton";
 
 type Milestone = {
   id: string;
@@ -434,10 +434,33 @@ export default function ProjectDetailPage() {
   if (pageError || !project) {
     return (
       <DashboardLayout>
-        <p className="text-gray-600">{pageError || "Loading..."}</p>
-        <Link href="/projects" className="mt-4 text-indigo-600">
-          Back to projects
-        </Link>
+        {pageError ? (
+          <>
+            <p className="text-gray-600 dark:text-gray-400">{pageError}</p>
+            <Link href="/projects" className="mt-4 inline-block text-indigo-600">
+              Back to projects
+            </Link>
+          </>
+        ) : (
+          <div className="w-full space-y-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
+              <SkeletonLine className="h-7 w-2/5 mb-3" />
+              <SkeletonLine className="h-4 w-3/5 mb-2" />
+              <SkeletonLine className="h-4 w-4/5" />
+            </div>
+            <div className="grid gap-6 grid-cols-3">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-[#1A1F2E]">
+              <SkeletonLine className="h-5 w-1/4 mb-4" />
+              <SkeletonLine className="h-4 w-full mb-2" />
+              <SkeletonLine className="h-4 w-full mb-2" />
+              <SkeletonLine className="h-4 w-3/4" />
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     );
   }
@@ -512,7 +535,7 @@ export default function ProjectDetailPage() {
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#111217]/80">
+            <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#0F1419]/80">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -584,7 +607,7 @@ export default function ProjectDetailPage() {
 
           <div className="space-y-6 mt-8">
             {user.role === "SUPER_ADMIN" && (
-              <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#111217]/80">
+              <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#0F1419]/80">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Client Assignment
                 </h2>
@@ -673,7 +696,7 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#111217]/80">
+            <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm dark:border-gray-800 dark:bg-[#0F1419]/80">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 GitHub Repositories
               </h2>
@@ -719,7 +742,7 @@ export default function ProjectDetailPage() {
 
       {canManageProjectRepos && showRepoPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-[#111217]">
+          <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-[#0F1419]">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Link Project Repository
             </h3>

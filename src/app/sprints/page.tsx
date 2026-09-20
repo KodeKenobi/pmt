@@ -15,8 +15,10 @@ import {
   startOfDay,
 } from "date-fns";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { SelectMenu } from "@/components/SelectMenu";
+import { SkeletonLine } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -83,24 +85,24 @@ const STATUS_COLORS: Record<
   { bar: string; text: string; dot: string }
 > = {
   PLANNED: {
-    bar: "bg-slate-400/20 border border-slate-300",
-    text: "text-slate-700",
-    dot: "bg-slate-400",
+    bar: "bg-slate-400/20 border border-slate-300 dark:border-slate-600 dark:bg-slate-700/20",
+    text: "text-slate-700 dark:text-slate-300",
+    dot: "bg-slate-400 dark:bg-slate-500",
   },
   ACTIVE: {
-    bar: "bg-brand-600/20 border border-brand-400/50",
+    bar: "bg-brand-600/20 border border-brand-400/50 dark:border-brand-500/50 dark:bg-brand-600/30",
     text: "text-brand-800 dark:text-brand-200",
-    dot: "bg-brand-500",
+    dot: "bg-brand-500 dark:bg-brand-400",
   },
   COMPLETED: {
-    bar: "bg-emerald-500/15 border border-emerald-400/40",
+    bar: "bg-emerald-500/15 border border-emerald-400/40 dark:border-emerald-600/50 dark:bg-emerald-700/20",
     text: "text-emerald-800 dark:text-emerald-300",
-    dot: "bg-emerald-500",
+    dot: "bg-emerald-500 dark:bg-emerald-400",
   },
   CLOSED: {
-    bar: "bg-gray-200/60 border border-gray-300",
-    text: "text-gray-500",
-    dot: "bg-gray-400",
+    bar: "bg-gray-200/60 border border-gray-300 dark:border-gray-700 dark:bg-gray-700/40",
+    text: "text-gray-500 dark:text-gray-400",
+    dot: "bg-gray-400 dark:bg-gray-600",
   },
 };
 
@@ -161,13 +163,13 @@ function SprintTimeline({
   const todayOffset = differenceInCalendarDays(today, rangeStart);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
           Timeline
         </p>
-        <div className="flex items-center gap-3 text-[11px] text-gray-500">
+        <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
           {(["PLANNED", "ACTIVE", "COMPLETED", "CLOSED"] as const).map((s) => (
             <span key={s} className="flex items-center gap-1.5">
               <span
@@ -192,7 +194,7 @@ function SprintTimeline({
         <div style={{ width: days.length * DAY_W, minWidth: "100%" }}>
           {/* Day header row */}
           <div
-            className="sticky top-0 z-10 flex border-b border-slate-100 bg-white"
+            className="sticky top-0 z-10 flex border-b border-slate-100 bg-white dark:border-slate-700 dark:bg-gray-900"
             style={{ width: days.length * DAY_W }}
           >
             {days.map((day, i) => {
@@ -203,9 +205,9 @@ function SprintTimeline({
                 <div
                   key={i}
                   className={cn(
-                    "flex h-9 shrink-0 flex-col items-center justify-center border-r border-slate-100 text-[10px]",
+                    "flex h-9 shrink-0 flex-col items-center justify-center border-r border-slate-100 text-[10px] dark:border-slate-700",
                     isToday
-                      ? "bg-brand-50 font-semibold text-brand-700"
+                      ? "bg-brand-50 font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300"
                       : "text-gray-400",
                   )}
                   style={{ width: DAY_W }}
@@ -255,8 +257,8 @@ function SprintTimeline({
                     <div
                       key={i}
                       className={cn(
-                        "absolute top-0 h-full border-r border-slate-100/60",
-                        i % 7 >= 5 ? "bg-slate-50/60" : "",
+                        "absolute top-0 h-full border-r border-slate-100/60 dark:border-slate-700/40",
+                        i % 7 >= 5 ? "bg-slate-50/60 dark:bg-slate-800/30" : "",
                       )}
                       style={{ left: i * DAY_W, width: DAY_W }}
                     />
@@ -289,7 +291,7 @@ function SprintTimeline({
                         {sprint.name}
                       </p>
                       {teamName ? (
-                        <p className="truncate text-[10px] leading-tight text-gray-500">
+                        <p className="truncate text-[10px] leading-tight text-gray-500 dark:text-gray-400">
                           {teamName}
                         </p>
                       ) : null}
@@ -637,37 +639,37 @@ export default function SprintsPage() {
     const canEditSprint = isSuperAdmin && sprint.status !== "CLOSED";
 
     return (
-      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-gray-800">
         {canEditSprint && editingSprintId === sprint.id ? (
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Sprint name
                 </label>
                 <input
                   value={editName}
                   onChange={(event) => setEditName(event.target.value)}
-                  className="w-full rounded-lg border border-[#d0d7de] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500"
+                  className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:border-gray-700 dark:bg-gray-700 dark:text-white dark:focus:border-brand-400"
                   placeholder="Sprint name"
                 />
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Sprint goal
                 </label>
                 <textarea
                   value={editGoal}
                   onChange={(event) => setEditGoal(event.target.value)}
                   rows={3}
-                  className="w-full rounded-lg border border-[#d0d7de] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500"
+                  className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:border-gray-700 dark:bg-gray-700 dark:text-white dark:focus:border-brand-400"
                   placeholder="What should this sprint achieve?"
                 />
               </div>
 
               <div className="md:col-span-1">
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Start date
                 </label>
                 <Popover>
@@ -676,8 +678,8 @@ export default function SprintsPage() {
                       type="button"
                       variant="outline"
                       className={cn(
-                        "w-full justify-start overflow-hidden border-[#d0d7de] bg-white text-left font-normal text-gray-900 hover:bg-gray-50",
-                        !editStartsAt && "text-gray-500",
+                        "w-full justify-start overflow-hidden border-[#E5E7EB] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600",
+                        !editStartsAt && "text-gray-500 dark:text-gray-400",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -701,7 +703,7 @@ export default function SprintsPage() {
               </div>
 
               <div className="md:col-span-1">
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   End date
                 </label>
                 <Popover>
@@ -710,8 +712,8 @@ export default function SprintsPage() {
                       type="button"
                       variant="outline"
                       className={cn(
-                        "w-full justify-start overflow-hidden border-[#d0d7de] bg-white text-left font-normal text-gray-900 hover:bg-gray-50",
-                        !editEndsAt && "text-gray-500",
+                        "w-full justify-start overflow-hidden border-[#E5E7EB] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600",
+                        !editEndsAt && "text-gray-500 dark:text-gray-400",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -748,7 +750,7 @@ export default function SprintsPage() {
                 type="button"
                 onClick={cancelEditSprint}
                 disabled={savingEdit}
-                className="rounded-lg border border-[#d0d7de] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -756,60 +758,60 @@ export default function SprintsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
               Sprint stats
             </p>
-            <div className="space-y-1.5 rounded-lg border border-slate-200 bg-white p-3">
+            <div className="space-y-1.5 rounded-lg border border-slate-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold uppercase tracking-wide text-gray-500">
+                <span className="font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Tickets
                 </span>
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {stats.total}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold uppercase tracking-wide text-gray-500">
+                <span className="font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Complete
                 </span>
-                <span className="font-semibold text-emerald-700">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                   {stats.completed}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold uppercase tracking-wide text-gray-500">
+                <span className="font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   In flight
                 </span>
-                <span className="font-semibold text-amber-700">
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
                   {stats.inFlight}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold uppercase tracking-wide text-gray-500">
+                <span className="font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Remaining
                 </span>
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {stats.remaining}
                 </span>
               </div>
             </div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-gray-600">
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                 <span>
                   {sprintDurationDays(sprint)} day sprint •{" "}
                   {sprint.status.toLowerCase()}
                 </span>
-                <span className="font-semibold text-gray-800">
+                <span className="font-semibold text-gray-800 dark:text-gray-300">
                   {stats.completion}% done
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-slate-200">
+              <div className="h-2 rounded-full bg-slate-200 dark:bg-gray-700">
                 <div
                   className="h-full rounded-full bg-brand-600 transition-all"
                   style={{ width: `${stats.completion}%` }}
                 />
               </div>
-              <p className="text-[11px] text-gray-500">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
                 {sprint.completedAt
                   ? `Completed ${fmtDate(sprint.completedAt)}`
                   : "Sprint not completed yet"}
@@ -832,7 +834,7 @@ export default function SprintsPage() {
   if (!user || !canManage) {
     return (
       <DashboardLayout>
-        <div className="rounded-xl border border-[#d0d7de] bg-white p-8 text-sm text-gray-600 dark:text-gray-300">
+        <div className="rounded-xl border border-[#E5E7EB] bg-white p-8 text-sm text-gray-600 dark:text-gray-300">
           You do not have access to sprint planning.
         </div>
       </DashboardLayout>
@@ -842,7 +844,7 @@ export default function SprintsPage() {
   return (
     <IconContext.Provider value={{ weight: "thin" }}>
       <DashboardLayout>
-        <div className="space-y-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <div className="space-y-6 rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-gray-900">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -863,7 +865,7 @@ export default function SprintsPage() {
               </button>
               {isSuperAdmin ? (
                 <div className="w-full sm:w-72">
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Team
                   </label>
                   <SelectMenu
@@ -915,19 +917,56 @@ export default function SprintsPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
+              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
                 Sprints
               </h2>
             </div>
 
             {loading ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-gray-500">
-                Loading sprints...
+              <div
+                className="grid gap-4 xl:grid-cols-4"
+                aria-label="Loading sprints"
+              >
+                {Array.from({ length: 4 }).map((_, columnIndex) => (
+                  <section
+                    key={`sprint-column-skeleton-${columnIndex}`}
+                    className="rounded-xl border border-[#E5E7EB] bg-white p-3 dark:border-slate-700 dark:bg-gray-800"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <SkeletonLine className="w-20" />
+                      <SkeletonLine className="h-6 w-7 rounded-full" />
+                    </div>
+                    <div className="space-y-3">
+                      {Array.from({ length: 2 }).map((_, cardIndex) => (
+                        <div
+                          key={`sprint-card-skeleton-${columnIndex}-${cardIndex}`}
+                          className="rounded-lg border border-[#E5E7EB] p-3 dark:border-slate-700"
+                        >
+                          <SkeletonLine className="w-4/5" />
+                          <SkeletonLine className="mt-3 w-full" />
+                          <SkeletonLine className="mt-2 w-3/5" />
+                          <SkeletonLine className="mt-4 h-2 w-full rounded-full" />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
             ) : sprints.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-gray-500">
-                No sprints yet for this team.
-              </div>
+              <EmptyState
+                title="No sprints yet"
+                description="Create a sprint to plan upcoming work for this team."
+                icon={<CalendarIcon className="h-6 w-6" aria-hidden="true" />}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateSprintModal(true)}
+                    className="btn-primary"
+                  >
+                    Create sprint
+                  </button>
+                }
+              />
             ) : (
               <div className="grid gap-4 xl:grid-cols-4">
                 {(
@@ -939,33 +978,33 @@ export default function SprintsPage() {
                   return (
                     <section
                       key={status}
-                      className="rounded-xl border border-[#d0d7de] bg-white p-3"
+                      className="rounded-xl border border-[#E5E7EB] bg-white p-3 dark:border-slate-700 dark:bg-gray-800"
                     >
                       <div className="mb-3 flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                           {status.replace("_", " ")}
                         </p>
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                           {columnItems.length}
                         </span>
                       </div>
 
                       <div className="space-y-3">
                         {columnItems.length === 0 ? (
-                          <div className="rounded-lg border border-dashed border-[#d0d7de] p-3 text-xs text-gray-500">
+                          <div className="rounded-lg border border-dashed border-[#E5E7EB] p-3 text-xs text-gray-500 dark:border-slate-700 dark:text-gray-400">
                             No sprints
                           </div>
                         ) : (
                           columnItems.map((sprint) => (
                             <article
                               key={sprint.id}
-                              className="rounded-lg border border-[#d0d7de] bg-white p-3 cursor-pointer hover:shadow-md transition-shadow hover:border-brand-400"
+                              className="rounded-lg border border-[#E5E7EB] bg-white p-3 cursor-pointer hover:shadow-md transition-shadow hover:border-brand-400 dark:border-slate-700 dark:bg-gray-700 dark:hover:border-brand-400"
                               onClick={() =>
                                 (window.location.href = `/sprints/${sprint.id}`)
                               }
                             >
                               <div className="flex items-start justify-between gap-2">
-                                <p className="line-clamp-2 text-sm font-semibold text-gray-900 hover:text-brand-600">
+                                <p className="line-clamp-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white">
                                   {sprint.name}
                                 </p>
                                 {isSuperAdmin && sprint.status !== "CLOSED" ? (
@@ -975,7 +1014,7 @@ export default function SprintsPage() {
                                       e.stopPropagation();
                                       startEditSprint(sprint);
                                     }}
-                                    className="inline-flex items-center gap-1 rounded-md border border-[#d0d7de] px-2 py-1 text-[11px] font-semibold text-gray-700"
+                                    className="inline-flex items-center gap-1 rounded-md border border-[#E5E7EB] px-2 py-1 text-[11px] font-semibold text-gray-700 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-gray-600"
                                   >
                                     <Edit3 className="h-3 w-3" />
                                     Edit
@@ -983,7 +1022,7 @@ export default function SprintsPage() {
                                 ) : null}
                               </div>
                               <div className="mt-2">
-                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                   Status
                                 </label>
                                 <SelectMenu
@@ -1007,15 +1046,15 @@ export default function SprintsPage() {
                                   }))}
                                   size="sm"
                                   className="w-full"
-                                  triggerClassName="border-[#d0d7de] bg-white text-gray-700"
+                                  triggerClassName="border-[#E5E7EB] bg-white text-gray-700 dark:border-slate-600 dark:bg-gray-600 dark:text-white"
                                 />
                               </div>
-                              <p className="mt-2 text-xs text-gray-500">
+                              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                 {fmtDate(sprint.startsAt)} to{" "}
                                 {fmtDate(sprint.endsAt)}
                               </p>
                               {sprint.goal ? (
-                                <p className="mt-2 line-clamp-3 text-xs text-gray-600">
+                                <p className="mt-2 line-clamp-3 text-xs text-gray-600 dark:text-gray-400">
                                   {sprint.goal}
                                 </p>
                               ) : null}
@@ -1040,20 +1079,20 @@ export default function SprintsPage() {
               aria-label="Close create sprint modal"
               onClick={() => setShowCreateSprintModal(false)}
             />
-            <div className="relative z-10 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#111217]">
+            <div className="relative z-10 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#0F1419]">
               <div className="mb-4 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Create Sprint
                   </h2>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Add a sprint name, goal, and schedule for the selected team.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowCreateSprintModal(false)}
-                  className="rounded-lg border border-[#d0d7de] bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:hover:bg-white/5"
+                  className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:hover:bg-white/5"
                 >
                   Close
                 </button>
@@ -1066,13 +1105,13 @@ export default function SprintsPage() {
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Sprint name"
                     required
-                    className="rounded-lg border border-[#d0d7de] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:bg-gray-950 dark:text-white"
+                    className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:bg-gray-950 dark:text-white"
                   />
                   <input
                     value={goal}
                     onChange={(event) => setGoal(event.target.value)}
                     placeholder="Sprint goal (optional)"
-                    className="rounded-lg border border-[#d0d7de] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:bg-gray-950 dark:text-white"
+                    className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-brand-500 dark:bg-gray-950 dark:text-white"
                   />
                   <div className="md:col-span-1">
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -1084,8 +1123,8 @@ export default function SprintsPage() {
                           type="button"
                           variant="outline"
                           className={cn(
-                            "w-full justify-start overflow-hidden border-[#d0d7de] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:bg-gray-950 dark:text-white dark:hover:bg-gray-900",
-                            !startsAt && "text-gray-500",
+                            "w-full justify-start overflow-hidden border-[#E5E7EB] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:bg-gray-950 dark:text-white dark:hover:bg-gray-900",
+                            !startsAt && "text-gray-500 dark:text-gray-400",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -1117,8 +1156,8 @@ export default function SprintsPage() {
                           type="button"
                           variant="outline"
                           className={cn(
-                            "w-full justify-start overflow-hidden border-[#d0d7de] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:bg-gray-950 dark:text-white dark:hover:bg-gray-900",
-                            !endsAt && "text-gray-500",
+                            "w-full justify-start overflow-hidden border-[#E5E7EB] bg-white text-left font-normal text-gray-900 hover:bg-gray-50 dark:bg-gray-950 dark:text-white dark:hover:bg-gray-900",
+                            !endsAt && "text-gray-500 dark:text-gray-400",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -1146,7 +1185,7 @@ export default function SprintsPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreateSprintModal(false)}
-                    className="rounded-lg border border-[#d0d7de] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:hover:bg-white/5"
+                    className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:hover:bg-white/5"
                   >
                     Cancel
                   </button>

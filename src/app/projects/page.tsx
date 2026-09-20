@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { SelectMenu } from "@/components/SelectMenu";
+import { SkeletonLine } from "@/components/ui/Skeleton";
 import { onRealtimeChange } from "@/lib/realtime-events";
+import { FolderKanban } from "lucide-react";
 
 type Project = {
   id: string;
@@ -244,7 +247,7 @@ export default function ProjectsPage() {
                 triggerClassName="bg-gray-100/80 dark:bg-slate-800/80"
               />
             ) : (
-              <div className="min-w-[180px] rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-[#111217] dark:text-gray-200">
+              <div className="min-w-[180px] rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-[#0F1419] dark:text-gray-200">
                 {teamLoading ? "Loading team…" : activeTeamName || "My team"}
               </div>
             )}
@@ -264,13 +267,29 @@ export default function ProjectsPage() {
         )}
 
         {isInitialLoading ? (
-          <div className="flex justify-center py-16">
-            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-500" />
+          <div
+            className="grid gap-4 md:grid-cols-2"
+            aria-label="Loading projects"
+          >
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={`project-skeleton-${index}`}
+                className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-[#1A1F2E]"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <SkeletonLine className="h-5 w-2/5" />
+                  <SkeletonLine className="h-6 w-16 rounded-full" />
+                </div>
+                <SkeletonLine className="mt-3 w-3/5" />
+                <SkeletonLine className="mt-5 h-2 w-full rounded-full" />
+                <SkeletonLine className="mt-3 w-1/2" />
+              </div>
+            ))}
           </div>
         ) : (
           <>
             {loading && projects.length > 0 && (
-              <div className="rounded-lg border border-gray-200 bg-white/90 p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-[#111217]/80">
+              <div className="rounded-lg border border-gray-200 bg-white/90 p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-[#0F1419]/80">
                 Refreshing projects…
               </div>
             )}
@@ -286,7 +305,7 @@ export default function ProjectsPage() {
                       router.push(`/projects/${p.id}`);
                     }
                   }}
-                  className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white p-5 text-left transition hover:border-indigo-300 dark:border-gray-800 dark:bg-[#1c1c24]"
+                  className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white p-5 text-left transition hover:border-indigo-300 dark:border-gray-800 dark:bg-[#1A1F2E]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="font-semibold text-gray-900 dark:text-white">
@@ -325,9 +344,22 @@ export default function ProjectsPage() {
         )}
 
         {!loading && projects.length === 0 && !error && (
-          <p className="text-center text-gray-500">
-            No projects for this filter.
-          </p>
+          <EmptyState
+            title="No projects found"
+            description="Try a different team filter or create a project to get started."
+            icon={<FolderKanban className="h-6 w-6" aria-hidden="true" />}
+            action={
+              user.role === "SUPER_ADMIN" ? (
+                <button
+                  type="button"
+                  onClick={openCreateModal}
+                  className="btn-primary"
+                >
+                  Create project
+                </button>
+              ) : null
+            }
+          />
         )}
 
         {showCreateModal && user.role === "SUPER_ADMIN" && (

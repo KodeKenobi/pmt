@@ -65,6 +65,14 @@ export async function POST(request: NextRequest) {
       select: { id: true, name: true },
     });
 
+    // Add the creator to the team membership
+    await db.teamMembership.create({
+      data: {
+        teamId: team.id,
+        userId: sessionUser.id,
+      },
+    });
+
     await writeAuditLog({
       actorId: sessionUser.id,
       action: "TEAM_CREATE",

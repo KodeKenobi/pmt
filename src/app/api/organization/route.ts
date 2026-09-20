@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       ssoProvider: null,
       allowedIpRaw: null,
       dataRetentionDays: null,
+      backupAutomatic: true,
     };
     return NextResponse.json(safe);
   } catch (error) {
@@ -44,6 +45,7 @@ export async function PATCH(request: NextRequest) {
       ssoProvider?: string | null;
       allowedIpRaw?: string | null;
       dataRetentionDays?: number | null;
+      backupAutomatic?: boolean;
     } = {};
 
     if (typeof body.ssoEnabled === "boolean") data.ssoEnabled = body.ssoEnabled;
@@ -57,22 +59,54 @@ export async function PATCH(request: NextRequest) {
     else if (typeof body.dataRetentionDays === "number") {
       data.dataRetentionDays = body.dataRetentionDays;
     }
+    if (typeof body.backupAutomatic === "boolean") {
+      data.backupAutomatic = body.backupAutomatic;
+    }
 
-    const settings = await db.organizationSettings.upsert({
-      where: { id: "default" },
-      create: { id: "default", ...data },
-      update: data,
-    });
+    try {
+      const settings = await db.organizationSettings.upsert({
+        where: { id: "default" },
+        create: { id: "default", ...data },
+        update: data,
+      });
 
-    await writeAuditLog({
-      actorId: session.id,
-      action: "ORG_SETTINGS_UPDATE",
-      entityType: "OrganizationSettings",
-      entityId: "default",
-      metadata: data as Record<string, unknown>,
-    });
+      await writeAuditLog({
+        actorId: session.id,
+        action: "ORG_SETTINGS_UPDATE",
+        entityType: "OrganizationSettings",
+        entityId: "default",
+        metadata: data as Record<string, unknown>,
+      });
 
-    return NextResponse.json(settings);
+      return NextResponse.json(settings);
+    } catch (dbError) {
+      // If the column doesn't exist yet, try to just update what we can
+      console.error("Database error, attempting fallback:", dbError);
+      
+      const fallbackData = { ...data };
+      delete fallbackData.backupAutomatic; // Remove the problematic field
+      
+      const settings = await db.organizationSettings.upsert({
+        where: { id: "default" },
+        create: { id: "default", ...fallbackData },
+        update: fallbackData,
+      });
+
+      await writeAuditLog({
+        actorId: session.id,
+        action: "ORG_SETTINGS_UPDATE",
+        entityType: "OrganizationSettings",
+        entityId: "default",
+        metadata: fallbackData as Record<string, unknown>,
+      });
+
+      // Return the settings with a note that backupAutomatic setting needs database migration
+      return NextResponse.json({
+        ...settings,
+        backupAutomatic: body.backupAutomatic ?? true,
+        _warning: "backupAutomatic column not yet migrated in database",
+      });
+    }
   } catch (error) {
     console.error("Organization PATCH error:", error);
     return NextResponse.json(

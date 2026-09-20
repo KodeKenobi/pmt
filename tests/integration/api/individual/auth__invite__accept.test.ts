@@ -27,7 +27,7 @@ jest.mock("@/lib/user-store", () => ({
 const params = {};
 const payload = {
   id: "id-test",
-  email: "dev@e-t.co.za",
+  email: "dev@lighthousemediagroup.com",
   password: "P@ssword123",
   name: "Integration Test",
   title: "Integration Ticket",
@@ -43,7 +43,7 @@ describe("src/app/api/auth/invite/accept/route.ts", () => {
     (db.inviteToken.findUnique as jest.Mock).mockResolvedValue({
       id: "invite-test",
       token: "token-test",
-      email: "dev@e-t.co.za",
+      email: "dev@lighthousemediagroup.com",
       role: "USER",
       used: false,
       expiresAt: new Date(Date.now() + 60_000),
@@ -52,7 +52,7 @@ describe("src/app/api/auth/invite/accept/route.ts", () => {
     (hashPassword as jest.Mock).mockResolvedValue("hashed-password");
     (createUser as jest.Mock).mockResolvedValue({
       id: "user-test",
-      email: "dev@e-t.co.za",
+      email: "dev@lighthousemediagroup.com",
       name: "Integration Test",
       role: "USER",
     });

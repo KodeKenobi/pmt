@@ -65,7 +65,10 @@ export async function POST(
   } catch (error) {
     console.error("Client reset-password error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error:
+          "We could not send the password reset email. Check the email settings and try again.",
+      },
       { status: 500 },
     );
   }

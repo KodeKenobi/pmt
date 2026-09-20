@@ -276,7 +276,6 @@ async function hydrateTicketFallback(baseTicket: any) {
     db.ticketAttachment.findMany({
       where: { ticketId: baseTicket.id },
       orderBy: { createdAt: "desc" },
-      include: { uploadedBy: { select: { id: true, name: true } } },
     }),
     db.ticketActivity.findMany({
       where: { ticketId: baseTicket.id },
@@ -305,6 +304,45 @@ async function hydrateTicketFallback(baseTicket: any) {
     };
   }
 
+  // Fetch related users for attachments, comments, and activities
+  const userIds = new Set<string>();
+  attachments.forEach((a: any) => {
+    if (a.uploadedById) userIds.add(a.uploadedById);
+  });
+  comments.forEach((c: any) => {
+    if (c.authorId) userIds.add(c.authorId);
+  });
+  activities.forEach((a: any) => {
+    if (a.actorId) userIds.add(a.actorId);
+  });
+
+  let userMap: Record<string, any> = {};
+  if (userIds.size > 0) {
+    const users = await db.user.findMany({
+      where: { id: { in: Array.from(userIds) } },
+      select: { id: true, name: true, email: true },
+    });
+    userMap = Object.fromEntries(users.map((u: any) => [u.id, u]));
+  }
+
+  // Hydrate attachments with uploadedBy
+  const attachmentsWithUsers = attachments.map((a: any) => ({
+    ...a,
+    uploadedBy: a.uploadedById ? userMap[a.uploadedById] : null,
+  }));
+
+  // Hydrate comments with author
+  const commentsWithAuthors = comments.map((c: any) => ({
+    ...c,
+    author: c.authorId ? userMap[c.authorId] : null,
+  }));
+
+  // Hydrate activities with actor
+  const activitiesWithActors = activities.map((a: any) => ({
+    ...a,
+    actor: a.actorId ? userMap[a.actorId] : null,
+  }));
+
   return {
     ...baseTicket,
     creator,
@@ -313,10 +351,10 @@ async function hydrateTicketFallback(baseTicket: any) {
     team,
     sprint,
     project: projectWithRepos,
-    comments,
+    comments: commentsWithAuthors,
     checklistItems,
-    attachments,
-    activities,
+    attachments: attachmentsWithUsers,
+    activities: activitiesWithActors,
     githubBranches,
     githubPullRequests,
   };
@@ -511,22 +549,26 @@ export async function PATCH(
         typeof updates.status === "string" &&
         STATUS_SET.has(updates.status)
       ) {
-        if (updates.status === TicketStatus.COMPLETE) {
-          if (ticket.status !== TicketStatus.QA) {
-            return NextResponse.json(
-              { error: "Only tickets in QA can be marked Complete" },
-              { status: 400 },
-            );
-          }
+        // Super admins can update to any status
+        if (user.role !== Role.SUPER_ADMIN) {
+          if (updates.status === TicketStatus.COMPLETE) {
+            if (ticket.status !== TicketStatus.QA) {
+              return NextResponse.json(
+                { error: "Only tickets in QA can be marked Complete" },
+                { status: 400 },
+              );
+            }
 
-          if (ticket.assigneeId && ticket.assigneeId === user.id) {
-            return NextResponse.json(
-              {
-                error:
-                  "Assignees cannot mark tickets Complete; QA validation is required",
-              },
-              { status: 403 },
-            );
+            // Assignees cannot mark tickets Complete; QA validation is required
+            if (ticket.assigneeId && ticket.assigneeId === user.id) {
+              return NextResponse.json(
+                {
+                  error:
+                    "Assignees cannot mark tickets Complete; QA validation is required",
+                },
+                { status: 403 },
+              );
+            }
           }
         }
         allowed.status = updates.status;

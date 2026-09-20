@@ -107,7 +107,10 @@ export async function GET(
   } catch (error) {
     console.error("Get client projects error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error:
+          "We could not load this client's projects. Please refresh and try again.",
+      },
       { status: 500 },
     );
   }

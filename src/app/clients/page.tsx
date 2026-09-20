@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { SelectMenu } from "@/components/SelectMenu";
 import {
@@ -12,18 +13,17 @@ import {
   User,
   X,
   CheckCircle,
-  XCircle,
   FolderKanban,
   Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SkeletonLine } from "@/components/ui/Skeleton";
+import { SkeletonLine, SkeletonTable } from "@/components/ui/Skeleton";
 import { onRealtimeChange } from "@/lib/realtime-events";
 
 interface Client {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   isInvited: boolean;
   invitationStatus: "NOT_INVITED" | "INVITED_NOT_CONFIRMED" | "ACTIVATED";
   hasSignedIn?: boolean;
@@ -528,7 +528,6 @@ export default function ClientsPage() {
                 <span>Add Project (No Client)</span>
               </button>
               <button
-                type="button"
                 onClick={() => setShowCreateModal(true)}
                 className="btn-primary flex items-center space-x-2"
               >
@@ -546,28 +545,38 @@ export default function ClientsPage() {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+          <div className="space-y-4" aria-label="Loading clients">
+            <div className="grid gap-3 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`client-metric-skeleton-${index}`}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#1A1F2E]"
+                >
+                  <SkeletonLine className="w-20" />
+                  <SkeletonLine className="mt-3 h-7 w-12" />
+                  <SkeletonLine className="mt-2 w-24" />
+                </div>
+              ))}
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-800 dark:bg-[#1A1F2E]">
+              <SkeletonTable rows={5} cols={5} />
+            </div>
           </div>
         ) : clients.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-8 h-8 text-gray-500 dark:text-gray-400" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
-              No clients found
-            </p>
-            <p className="text-gray-500 dark:text-gray-500 text-sm mb-6">
-              Get started by adding your first client
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              disabled={!canManageClients}
-              className="btn-primary disabled:opacity-50"
-            >
-              Add your first client
-            </button>
-          </div>
+          <EmptyState
+            title="No clients found"
+            description="Add your first client to start tracking their work."
+            icon={<User className="h-6 w-6" aria-hidden="true" />}
+            action={
+              <button
+                onClick={() => setShowCreateModal(true)}
+                disabled={!canManageClients}
+                className="btn-primary disabled:opacity-50"
+              >
+                Add client
+              </button>
+            }
+          />
         ) : (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-4">
@@ -597,7 +606,7 @@ export default function ClientsPage() {
               />
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-[#1A1F2E]">
               <div className="overflow-x-auto">
                 <table className="min-w-[1050px] w-full text-sm">
                   <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur dark:bg-gray-900/95">
@@ -646,40 +655,50 @@ export default function ClientsPage() {
                             <span className="break-all">{client.email}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-4 align-top">
-                          <div className="inline-flex items-center gap-2">
+                        <td className="px-5 py-4 align-top whitespace-nowrap">
+                          <div className="inline-flex items-center gap-2 flex-nowrap">
                             {client.invitationStatus === "ACTIVATED" ? (
                               <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            ) : client.invitationStatus ===
-                              "INVITED_NOT_CONFIRMED" ? (
-                              <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                            )}
-                            <span
-                              className={cn(
-                                "rounded-full border px-2.5 py-1 text-xs font-medium",
-                                client.invitationStatus === "ACTIVATED"
-                                  ? "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300"
-                                  : client.invitationStatus ===
-                                      "INVITED_NOT_CONFIRMED"
-                                    ? "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
-                                    : "border-gray-300 bg-gray-100 text-gray-700 dark:border-gray-600 dark:bg-gray-500/10 dark:text-gray-300",
-                              )}
-                            >
-                              {client.invitationStatus === "ACTIVATED"
-                                ? "Activated"
-                                : client.invitationStatus ===
-                                    "INVITED_NOT_CONFIRMED"
-                                  ? "Invited - Pending"
-                                  : "Pending"}
-                            </span>
-                            {client.invitationStatus === "ACTIVATED" &&
-                            client.hasSignedIn ? (
-                              <span className="rounded-full border border-sky-300 bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300">
-                                Signed in
-                              </span>
                             ) : null}
+                            {!client.email ? (
+                              <span className="rounded-full border border-gray-300 bg-gray-100 px-3.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-500/10 dark:text-gray-300">
+                                No Email
+                              </span>
+                            ) : client.invitationStatus === "ACTIVATED" ? (
+                              <>
+                                <span className="rounded-full border border-emerald-300 bg-emerald-100 px-3.5 py-1 text-xs font-medium text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300">
+                                  Activated
+                                </span>
+                                {client.hasSignedIn ? (
+                                  <span className="rounded-full border border-sky-300 bg-sky-100 px-3 py-0.5 text-[10px] font-medium text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300">
+                                    Signed in
+                                  </span>
+                                ) : null}
+                              </>
+                            ) : client.invitationStatus === "INVITED_NOT_CONFIRMED" ? (
+                              <>
+                                <span className="rounded-full border border-amber-300 bg-amber-100 px-3.5 py-1 text-xs font-medium text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300">
+                                  Invited - Pending
+                                </span>
+                                {canManageClients ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openConfirmAction(client, "resendInvite")
+                                    }
+                                    className="inline-flex h-6 items-center gap-1 rounded-md bg-amber-50 px-2 text-[10px] font-medium text-amber-700 transition hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+                                    title="Resend invitation email"
+                                  >
+                                    <Mail className="h-3 w-3" />
+                                    Resend
+                                  </button>
+                                ) : null}
+                              </>
+                            ) : (
+                              <span className="rounded-full border border-gray-300 bg-gray-100 px-3.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-500/10 dark:text-gray-300">
+                                Not Invited
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-5 py-4 align-top text-gray-600 dark:text-gray-400">
@@ -768,9 +787,6 @@ export default function ClientsPage() {
             <div className="relative w-full max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-gray-800/50 shadow-2xl animate-fade-in">
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800/50">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-white" />
-                  </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                       Add New Client
@@ -808,16 +824,15 @@ export default function ClientsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email Address *
+                    Email Address
                   </label>
                   <input
                     type="email"
-                    required
                     value={newClient.email}
                     onChange={(e) =>
                       setNewClient({ ...newClient, email: e.target.value })
                     }
-                    placeholder="Enter client email..."
+                    placeholder="Enter client email (optional)..."
                     className="w-full input-modern"
                   />
                 </div>
@@ -853,10 +868,10 @@ export default function ClientsPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={!newClient.name.trim() || !newClient.email.trim()}
+                    disabled={!newClient.name.trim()}
                     className={cn(
                       "btn-primary",
-                      (!newClient.name.trim() || !newClient.email.trim()) &&
+                      !newClient.name.trim() &&
                         "opacity-50 cursor-not-allowed",
                     )}
                   >
@@ -1036,9 +1051,14 @@ export default function ClientsPage() {
                       <SkeletonLine className="h-9 w-5/6" />
                     </div>
                   ) : githubReposError ? (
-                    <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-200">
-                      {githubReposError}
-                    </p>
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-700/50 dark:bg-amber-900/20">
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                        Couldn't load GitHub repositories
+                      </p>
+                      <p className="text-xs text-amber-800 dark:text-amber-200">
+                        Check your GitHub connection and organization access, then try again.
+                      </p>
+                    </div>
                   ) : availableGithubRepos.length === 0 ? (
                     <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800/40 dark:text-gray-300">
                       No repositories available for your connected GitHub

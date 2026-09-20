@@ -76,7 +76,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Update client error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "We could not update this client. Please try again." },
       { status: 500 },
     );
   }
@@ -149,7 +149,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Delete client error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "We could not delete this client. Please try again." },
       { status: 500 },
     );
   }

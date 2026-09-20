@@ -31,7 +31,7 @@ export function Pagination({
         type="button"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-gray-300 dark:hover:bg-white/5"
+        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-gray-300 dark:hover:bg-white/5"
       >
         <ChevronLeft className="h-4 w-4" />
         Previous
@@ -46,7 +46,7 @@ export function Pagination({
             "min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition",
             page === currentPage
               ? "border-brand-600 bg-brand-600 text-white"
-              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-gray-300 dark:hover:bg-white/5",
+              : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-gray-300 dark:hover:bg-white/5",
           )}
         >
           {page}
@@ -57,7 +57,7 @@ export function Pagination({
         type="button"
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-[#1c1c24] dark:text-gray-300 dark:hover:bg-white/5"
+        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-[#1A1F2E] dark:text-gray-300 dark:hover:bg-white/5"
       >
         Next
         <ChevronRight className="h-4 w-4" />

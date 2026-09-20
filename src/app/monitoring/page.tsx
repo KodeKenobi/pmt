@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { MonitoringTabs } from "@/components/MonitoringTabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronDown, ExternalLink, Loader2, RefreshCcw } from "lucide-react";
@@ -205,10 +206,7 @@ export default function MonitoringPage() {
         <header className="border-b border-gray-200 pb-4 dark:border-gray-800">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
-                Monitoring
-              </p>
-              <h1 className="mt-2 text-3xl font-bold text-gray-950 dark:text-white">
+              <h1 className="text-3xl font-bold text-gray-950 dark:text-white">
                 Sentry Error Alerts
               </h1>
               <p className="mt-2 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
@@ -419,9 +417,12 @@ export default function MonitoringPage() {
             ))}
 
             {alerts.length === 0 && !loading ? (
-              <div className="px-4 py-6 text-sm text-gray-500">
-                No Sentry error alerts found in the current scan window.
-              </div>
+              <EmptyState
+                title="No Sentry alerts found"
+                description="There are no error alerts in the current scan window."
+                icon={<ChevronDown className="h-6 w-6" aria-hidden="true" />}
+                className="border-0 bg-transparent shadow-none"
+              />
             ) : null}
 
             {loading ? (

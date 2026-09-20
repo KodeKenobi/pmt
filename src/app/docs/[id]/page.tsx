@@ -4,6 +4,7 @@ import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { SkeletonLine, SkeletonCard } from "@/components/ui/Skeleton";
 import { ArrowLeft, Save, Trash2, Clock, User } from "lucide-react";
 import TipTapEditor from "@/components/TipTapEditor";
 
@@ -83,8 +84,27 @@ export default function DocEditorPage({
   if (!doc) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+        <div className="w-full space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="p-2">
+                <SkeletonLine className="w-5 h-5" />
+              </div>
+              <SkeletonLine className="h-8 w-2/3" />
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <SkeletonLine className="w-8 h-8" />
+              <SkeletonLine className="w-32 h-10" />
+            </div>
+          </div>
+          <SkeletonCard className="h-20" />
+          <div className="flex-1 min-h-[500px] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1A1F2E] p-6">
+            <SkeletonLine className="h-4 w-full mb-3" />
+            <SkeletonLine className="h-4 w-full mb-3" />
+            <SkeletonLine className="h-4 w-3/4 mb-3" />
+            <SkeletonLine className="h-4 w-full mb-3" />
+            <SkeletonLine className="h-4 w-5/6" />
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -129,7 +149,7 @@ export default function DocEditorPage({
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-sm text-gray-500 bg-white dark:bg-[#1c1c24] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="flex items-center gap-6 text-sm text-gray-500 bg-white dark:bg-[#1A1F2E] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4" />
             <span>Author: {doc.author?.name ?? "Unknown author"}</span>
@@ -147,7 +167,7 @@ export default function DocEditorPage({
           )}
         </div>
 
-        <div className="flex-1 min-h-[500px] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1c1c24] p-6">
+        <div className="flex-1 min-h-[500px] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-[#1A1F2E] p-6">
           <TipTapEditor
             content={content}
             setContent={(val: string) => setContent(val)}

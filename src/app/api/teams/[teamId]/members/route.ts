@@ -16,6 +16,7 @@ import {
   findUserById,
   updateUser,
 } from "@/lib/user-store";
+import { createSupabaseAdminClient } from "@/lib/supabase";
 import { randomBytes } from "node:crypto";
 
 async function requireSuperAdmin(request: NextRequest) {
@@ -169,6 +170,22 @@ export async function GET(
       )
       .sort((left, right) => left.name.localeCompare(right.name));
 
+    // Include super admin in the members list even if not explicitly added to TeamMembership
+    if (
+      user.role === Role.SUPER_ADMIN &&
+      !members.some((m) => m.userId === user.id)
+    ) {
+      members.unshift({
+        membershipId: `implicit-${user.id}`,
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        invitationStatus: "ACTIVATED",
+      });
+    }
+
     return NextResponse.json({ members });
   } catch (error) {
     console.error("Get team members error:", error);
@@ -179,7 +196,7 @@ export async function GET(
   }
 }
 
-/** POST — add member by email (super admin only; internal staff only) */
+/** POST — add member by email using Supabase invite (super admin only; internal staff only) */
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ teamId: string }> },
@@ -200,166 +217,139 @@ export async function POST(
   const body = await request.json().catch(() => ({}));
   const rawEmail =
     typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const rawName = typeof body.name === "string" ? body.name.trim() : "";
   const rawRole = typeof body.role === "string" ? body.role : "";
   const selectedRole: Role = ALLOWED_TEAM_MEMBER_ROLES.has(rawRole as Role)
     ? (rawRole as Role)
     : Role.USER;
+
   if (!rawEmail) {
     return NextResponse.json({ error: "email is required" }, { status: 400 });
   }
 
-  let target = await findUserByEmail(rawEmail);
-  let invited = false;
-  let inviteEmailSent: boolean | null = null;
-  let warning: string | null = null;
-
-  if (!target) {
-    if (selectedRole === Role.USER && !isInternalStaffEmail(rawEmail)) {
-      return NextResponse.json(
-        {
-          error:
-            "Staff invites must use @lighthousemediagroup.com email addresses.",
-        },
-        { status: 400 },
-      );
-    }
-
-    const temporaryPasswordHash = await hashPassword(
-      randomBytes(24).toString("hex"),
-    );
-
-    target = await createUser({
-      email: rawEmail,
-      name: rawName || inferNameFromEmail(rawEmail),
-      password: temporaryPasswordHash,
-      role: selectedRole,
-      teamId,
-    });
-
-    invited = true;
-  }
-
-  if (target.role === Role.CLIENT) {
+  // Validate internal staff email
+  if (selectedRole === Role.USER && !isInternalStaffEmail(rawEmail)) {
     return NextResponse.json(
-      { error: "Client accounts cannot be added to internal teams." },
+      {
+        error:
+          "Staff invites must use @lighthousemediagroup.com email addresses.",
+      },
       { status: 400 },
     );
   }
 
-  if (target.role !== selectedRole) {
-    await db.user.update({
-      where: { id: target.id },
-      data: { role: selectedRole },
-    });
-    target = { ...target, role: selectedRole };
-  }
-
   try {
-    await db.teamMembership.create({
-      data: { userId: target.id, teamId },
+    // Check if user already exists in our database
+    let target = await findUserByEmail(rawEmail);
+
+    if (!target) {
+      // Use Supabase Admin API to send invite
+      const supabaseAdmin = createSupabaseAdminClient();
+      console.log("[Team Add] Sending Supabase invite to", {
+        email: rawEmail,
+        teamId,
+        teamName: team.name,
+      });
+
+      const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        rawEmail,
+        {
+          autoConfirmUser: false,
+        },
+      );
+
+      if (error) {
+        console.error("[Team Add] Supabase invite failed", {
+          email: rawEmail,
+          error: error.message,
+        });
+        return NextResponse.json(
+          {
+            error:
+              error.message ||
+              "Failed to send invite. Please try again later.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Create user in our database
+      target = await createUser({
+        email: rawEmail,
+        name: inferNameFromEmail(rawEmail),
+        password: "", // No password needed with Supabase Auth
+        role: selectedRole,
+        teamId,
+      });
+
+      console.log("[Team Add] User created in database", {
+        userId: target.id,
+        email: rawEmail,
+      });
+    } else {
+      // User already exists, just update role if needed
+      if (target.role === Role.CLIENT) {
+        return NextResponse.json(
+          { error: "Client accounts cannot be added to internal teams." },
+          { status: 400 },
+        );
+      }
+
+      if (target.role !== selectedRole) {
+        await db.user.update({
+          where: { id: target.id },
+          data: { role: selectedRole },
+        });
+        target = { ...target, role: selectedRole };
+      }
+    }
+
+    // Add user to team membership
+    try {
+      await db.teamMembership.create({
+        data: { userId: target.id, teamId },
+      });
+    } catch {
+      return NextResponse.json(
+        { error: "That user is already on this team." },
+        { status: 409 },
+      );
+    }
+
+    // Update user's primary team if null
+    if (target.teamId === null) {
+      await updateUser(target.id, { teamId });
+    }
+
+    await writeAuditLog({
+      actorId: sessionUser.id,
+      action: "TEAM_MEMBER_ADD",
+      entityType: "TeamMembership",
+      entityId: teamId,
+      metadata: {
+        teamName: team.name,
+        userId: target.id,
+        email: target.email,
+        selectedRole,
+        method: "supabase-invite",
+      },
     });
-  } catch {
-    return NextResponse.json(
-      { error: "That user is already on this team." },
-      { status: 409 },
-    );
-  }
 
-  if (target.teamId === null) {
-    await updateUser(target.id, { teamId });
-  }
-
-  const inviteToken = randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-  await db.passwordReset.create({
-    data: {
-      token: inviteToken,
-      userId: target.id,
-      expiresAt,
-    },
-  });
-
-  try {
-    const appBaseUrl = resolveAppBaseUrl(request.url);
-    const loginLink = `/auth/login?email=${encodeURIComponent(target.email)}&inviteToken=`;
-    console.log("[Team Add] sending invite email", {
-      teamId,
-      teamName: team.name,
-      userId: target.id,
-      email: target.email,
-      invited,
-      selectedRole,
-      endpoint: "/api/teams/[teamId]/members",
-      provider:
-        process.env.EMAIL_PROVIDER ||
-        (process.env.RESEND_API_KEY ? "resend" : "smtp"),
-      inviteToken: `${inviteToken.slice(0, 6)}...`,
-      loginLink,
+    return NextResponse.json({
+      success: true,
+      message: "Invitation sent successfully",
+      invited: true,
     });
-
-    const emailResult = await sendAdminInviteEmail(
-      target.email,
-      inviteToken,
-      target.name,
-      team.name,
-      loginLink,
-      appBaseUrl,
-    );
-
-    console.log("[Team Add] invite email sent", {
-      teamId,
-      teamName: team.name,
-      userId: target.id,
-      email: target.email,
-      result: emailResult,
-    });
-    inviteEmailSent = true;
   } catch (error) {
-    console.error("[Team Add] invite email failed", {
+    console.error("[Team Add] Unexpected error", {
       teamId,
-      teamName: team.name,
-      userId: target.id,
-      email: target.email,
       error,
       errorMessage: error instanceof Error ? error.message : String(error),
     });
-    inviteEmailSent = false;
-    warning =
-      "Member added, but invitation email failed to send. Check the email provider configuration and resend invite.";
+    return NextResponse.json(
+      { error: "Failed to add member. Please try again." },
+      { status: 500 },
+    );
   }
-
-  await writeAuditLog({
-    actorId: sessionUser.id,
-    action: "TEAM_MEMBER_ADD",
-    entityType: "TeamMembership",
-    entityId: teamId,
-    metadata: {
-      teamName: team.name,
-      userId: target.id,
-      email: target.email,
-      invited,
-      inviteEmailSent,
-      selectedRole,
-    },
-  });
-
-  const invitationStatus = await getInvitationStatusForUser(target.id);
-
-  return NextResponse.json({
-    ok: true,
-    invited,
-    inviteEmailSent,
-    warning,
-    member: {
-      userId: target.id,
-      name: target.name,
-      email: target.email,
-      role: target.role,
-      invitationStatus,
-    },
-  });
 }
 
 /** DELETE — remove member ?userId= (super admin only) */

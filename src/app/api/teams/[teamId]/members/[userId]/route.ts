@@ -30,10 +30,29 @@ export async function PATCH(
     }
 
     const { teamId, userId } = await context.params;
-    const membership = await db.teamMembership.findFirst({
+    let membership = await db.teamMembership.findFirst({
       where: { teamId, userId },
       select: { id: true },
     });
+
+    // If membership doesn't exist but user exists and super admin is editing, create it
+    if (!membership) {
+      const existingUser = await findUserById(userId);
+      if (existingUser) {
+        try {
+          membership = await db.teamMembership.create({
+            data: { userId, teamId },
+            select: { id: true },
+          });
+        } catch {
+          // Membership might already exist, try finding it again
+          membership = await db.teamMembership.findFirst({
+            where: { teamId, userId },
+            select: { id: true },
+          });
+        }
+      }
+    }
 
     if (!membership) {
       return NextResponse.json(

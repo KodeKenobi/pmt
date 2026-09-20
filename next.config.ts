@@ -5,8 +5,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Required for Electron production builds — bundles Next.js as a self-contained server
-  output: process.env.ELECTRON_BUILD === "1" ? "standalone" : undefined,
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },

@@ -52,6 +52,15 @@ const relationFilters: Record<
   User: {
     teamMemberships: { table: "TeamMembership", foreignKey: "userId" },
   },
+  TicketAttachment: {
+    uploadedBy: { table: "User", foreignKey: "uploadedById" },
+  },
+  TicketComment: {
+    author: { table: "User", foreignKey: "authorId" },
+  },
+  TicketActivity: {
+    actor: { table: "User", foreignKey: "actorId" },
+  },
 };
 
 function pascalCase(value: string) {

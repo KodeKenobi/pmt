@@ -370,6 +370,7 @@ CREATE TABLE IF NOT EXISTS "OrganizationSettings" (
   "ssoProvider" text,
   "allowedIpRaw" text,
   "dataRetentionDays" integer,
+  "backupAutomatic" boolean NOT NULL DEFAULT true,
   "createdAt" timestamptz NOT NULL DEFAULT now(),
   "updatedAt" timestamptz NOT NULL DEFAULT now()
 );

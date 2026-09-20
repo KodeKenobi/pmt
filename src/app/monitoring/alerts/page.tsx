@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { MonitoringTabs } from "@/components/MonitoringTabs";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -298,9 +299,12 @@ export default function MonitoringAlertsPage() {
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-sm text-gray-500">
-                No alert notifications yet.
-              </div>
+              <EmptyState
+                title="No alert notifications"
+                description="New monitoring alerts will appear here."
+                icon={<Radar className="h-6 w-6" aria-hidden="true" />}
+                className="border-0 bg-transparent shadow-none"
+              />
             )}
           </div>
 
@@ -357,9 +361,12 @@ export default function MonitoringAlertsPage() {
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-sm text-gray-500">
-                No unresolved issues returned from Sentry.
-              </div>
+              <EmptyState
+                title="No unresolved issues"
+                description="Sentry has not reported any open issues."
+                icon={<ShieldCheck className="h-6 w-6" aria-hidden="true" />}
+                className="border-0 bg-transparent shadow-none"
+              />
             )}
           </div>
         </div>

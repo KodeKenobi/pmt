@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTeam } from "@/contexts/TeamContext";
 import DashboardLayout from "@/components/DashboardLayout";
-import { ArrowUpRight, ChevronRight, Plus, Search, X } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import {
+  ArrowUpRight,
+  ChevronRight,
+  FileText,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { onRealtimeChange } from "@/lib/realtime-events";
 
 type Heading = {
@@ -365,18 +373,18 @@ export default function DocsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-7rem)] w-full flex-col overflow-hidden border border-[#d0d7de] bg-[#f6f8fa] text-[#24292f]">
-        <header className="border-b border-[#d0d7de] bg-white px-5 py-4">
+      <div className="flex h-[calc(100vh-7rem)] w-full flex-col overflow-hidden border border-[#E5E7EB] bg-[#F5F5F7] text-[#1A1A1A] dark:border-slate-700 dark:bg-gray-900 dark:text-white">
+        <header className="border-b border-[#E5E7EB] bg-white px-5 py-4 dark:border-slate-700 dark:bg-gray-800">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative min-w-[280px] flex-1 sm:flex-none sm:w-[360px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8c959f]" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search articles"
-                  className="w-full border border-[#d0d7de] bg-white py-2.5 pl-10 pr-4 text-sm text-[#24292f] outline-none transition focus:border-[#1f6feb]"
+                  className="w-full border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-4 text-sm text-[#1A1A1A] outline-none transition focus:border-[#3498DB] dark:border-slate-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
               <button
@@ -385,7 +393,7 @@ export default function DocsPage() {
                   setCreateDocError("");
                   setShowCreateModal(true);
                 }}
-                className="inline-flex items-center justify-center gap-2 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a7f37]"
+                className="inline-flex items-center justify-center gap-2 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2ECC71]"
               >
                 <Plus className="h-4 w-4" />
                 New article
@@ -396,19 +404,19 @@ export default function DocsPage() {
 
         <div className="mx-auto grid min-h-0 flex-1 w-full max-w-[1440px] grid-cols-1 gap-6 overflow-hidden px-5 py-6 xl:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden min-h-0 h-full xl:block">
-            <div className="h-full border border-[#d0d7de] bg-white">
+            <div className="h-full border border-[#E5E7EB] bg-white dark:border-slate-700 dark:bg-gray-800">
               <div className="h-full overflow-y-auto px-2 py-2">
                 <details
                   open
-                  className="group border-b border-[#d8dee4] px-2 py-1 last:border-b-0"
+                  className="group border-b border-[#E5E7EB] px-2 py-1 last:border-b-0"
                 >
-                  <summary className="cursor-pointer list-none py-1.5 text-md text-[#24292f] font-bold">
+                  <summary className="cursor-pointer list-none py-1.5 text-md text-[#1A1A1A] font-bold dark:text-white">
                     Docs
                   </summary>
                   <div className="pb-2 space-y-3">
                     <div>
                       <div className="flex flex-col justify-center">
-                        <p className="px-2 py-3 text-[14px] bg-gray-600 font-semibold uppercase tracking-wide text-white border border-[#d8dee4] rounded-tl-md rounded-tr-md">
+                        <p className="px-2 py-3 text-[14px] font-semibold uppercase tracking-wide text-[#4A4A4A] border-b border-[#E5E7EB] dark:text-gray-400 dark:border-slate-700">
                           Team Documents
                         </p>
                       </div>
@@ -420,8 +428,8 @@ export default function DocsPage() {
                             onClick={() => setSelectedId(item.id)}
                             className={`mt-1 flex w-full items-center gap-2 border-l-2 px-2 py-1.5 text-left text-sm font-medium cursor-pointer pointer-events-auto ${
                               selectedId === item.id
-                                ? "border-brand-600 text-brand-600"
-                                : "border-transparent text-[#57606a] hover:text-[#24292f]"
+                                ? "border-brand-600 text-brand-600 dark:text-brand-400"
+                                : "border-transparent text-[#4A4A4A] hover:text-[#1A1A1A] dark:text-gray-400 dark:hover:text-gray-200"
                             }`}
                             title={sidebarItemTitle(item)}
                           >
@@ -432,18 +440,18 @@ export default function DocsPage() {
                           </button>
                         ))
                       ) : (
-                        <p className="mt-1 px-2 py-1 text-xs text-[#57606a]">
+                        <p className="mt-1 px-2 py-1 text-xs text-[#4A4A4A] dark:text-gray-400">
                           No team docs.
                         </p>
                       )}
                     </div>
 
                     {/* Horizontal line */}
-                    <div className="border-t border-[#d8dee4] my-4"></div>
+                    <div className="border-t border-[#E5E7EB] my-4"></div>
 
                     <div>
                       <div className="flex flex-col justify-center">
-                        <p className="px-2 py-3 text-[14px] bg-gray-600 font-semibold uppercase tracking-wide text-white border border-[#d8dee4] rounded-tl-md rounded-tr-md">
+                        <p className="px-2 py-3 text-[14px] font-semibold uppercase tracking-wide text-[#4A4A4A] border-b border-[#E5E7EB] dark:text-gray-400 dark:border-slate-700">
                           Repository READMEs
                         </p>
                       </div>
@@ -456,8 +464,8 @@ export default function DocsPage() {
                             onClick={() => setSelectedId(item.id)}
                             className={`mt-1 flex w-full items-center gap-2 border-l-2 px-2 py-1.5 text-left text-sm font-medium cursor-pointer pointer-events-auto ${
                               selectedId === item.id
-                                ? "border-brand-600 text-brand-600"
-                                : "border-transparent text-[#57606a] hover:text-[#24292f]"
+                                ? "border-brand-600 text-brand-600 dark:text-brand-400"
+                                : "border-transparent text-[#4A4A4A] hover:text-[#1A1A1A] dark:text-gray-400 dark:hover:text-gray-200"
                             }`}
                             title={sidebarItemTitle(item)}
                           >
@@ -468,14 +476,14 @@ export default function DocsPage() {
                           </button>
                         ))
                       ) : (
-                        <p className="mt-1 px-2 py-1 text-xs text-[#57606a]">
+                        <p className="mt-1 px-2 py-1 text-xs text-[#4A4A4A] dark:text-gray-400">
                           No repository README docs.
                         </p>
                       )}
                     </div>
 
                     {headings.length > 0 ? (
-                      <ul className="mt-2 border-t border-[#d8dee4] pt-3 space-y-1.5 text-sm px-2 pb-2">
+                      <ul className="mt-2 border-t border-[#E5E7EB] pt-3 space-y-1.5 text-sm px-2 pb-2 dark:border-slate-700">
                         {headings.map((heading) => (
                           <li key={heading.id}>
                             <button
@@ -542,8 +550,8 @@ export default function DocsPage() {
                               }}
                               className={`block w-full text-left py-1.5 px-2 rounded transition-colors cursor-pointer pointer-events-auto ${
                                 activeHeadingId === heading.id
-                                  ? "text-brand-600 font-semibold bg-brand-600/5"
-                                  : "text-[#57606a] hover:text-[#24292f] hover:bg-gray-100/50"
+                                  ? "text-brand-600 font-semibold bg-brand-600/5 dark:text-brand-400 dark:bg-brand-400/10"
+                                  : "text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-gray-100/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700/50"
                               }`}
                             >
                               {heading.text}
@@ -554,7 +562,7 @@ export default function DocsPage() {
                     ) : null}
 
                     {!visibleItems.length ? (
-                      <p className="mt-1 px-2 py-1 text-xs text-[#57606a]">
+                      <p className="mt-1 px-2 py-1 text-xs text-[#4A4A4A] dark:text-gray-400">
                         No docs found.
                       </p>
                     ) : null}
@@ -572,16 +580,16 @@ export default function DocsPage() {
               <article
                 ref={articleRef}
                 id="doc-content"
-                className="border border-[#d0d7de] bg-white p-8 sm:p-12"
+                className="border border-[#E5E7EB] bg-white p-8 sm:p-12 dark:border-slate-700 dark:bg-gray-800"
               >
-                <div className="mb-6 flex flex-col gap-4 border-b border-[#d0d7de] pb-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="mb-6 flex flex-col gap-4 border-b border-[#E5E7EB] pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-slate-700">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#57606a]">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#4A4A4A] dark:text-gray-400">
                       {selectedItem.kind === "repo-readme"
                         ? "Repository README"
                         : "Team Document"}
                     </p>
-                    <h3 className="mt-2 text-2xl font-semibold text-[#24292f]">
+                    <h3 className="mt-2 text-2xl font-semibold text-[#1A1A1A] dark:text-white">
                       {selectedItem.title}
                     </h3>
                   </div>
@@ -590,7 +598,7 @@ export default function DocsPage() {
                     {selectedItem.kind === "authored-doc" ? (
                       <Link
                         href={`/docs/${selectedItem.id}`}
-                        className="inline-flex items-center gap-2 border border-[#d0d7de] bg-white px-3 py-2 text-sm font-medium text-[#24292f] hover:bg-[#f6f8fa]"
+                        className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-[#F5F5F7] dark:border-slate-700 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                       >
                         Edit article
                         <ArrowUpRight className="h-4 w-4" />
@@ -600,7 +608,7 @@ export default function DocsPage() {
                         href={selectedItem.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 border border-[#d0d7de] bg-white px-3 py-2 text-sm font-medium text-[#24292f] hover:bg-[#f6f8fa]"
+                        className="inline-flex items-center gap-2 border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-[#F5F5F7] dark:border-slate-700 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                       >
                         Open repository
                         <ArrowUpRight className="h-4 w-4" />
@@ -609,22 +617,22 @@ export default function DocsPage() {
                   </div>
                 </div>
 
-                <section className="mb-6 grid gap-3 rounded-lg border border-[#d8dee4] bg-[#f6f8fa] p-4 sm:grid-cols-2">
+                <section className="mb-6 grid gap-3 rounded-lg border border-[#E5E7EB] bg-[#F5F5F7] p-4 sm:grid-cols-2 dark:border-slate-700 dark:bg-gray-900">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#57606a]">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4A4A4A] dark:text-gray-400">
                       Source
                     </p>
-                    <p className="mt-1 text-sm font-medium text-[#24292f]">
+                    <p className="mt-1 text-sm font-medium text-[#1A1A1A] dark:text-white">
                       {selectedItem.kind === "repo-readme"
                         ? `${selectedItem.owner}/${selectedItem.repo}`
                         : (selectedItem.author?.name ?? "Unknown author")}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#57606a]">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4A4A4A] dark:text-gray-400">
                       Last updated
                     </p>
-                    <p className="mt-1 text-sm font-medium text-[#24292f]">
+                    <p className="mt-1 text-sm font-medium text-[#1A1A1A] dark:text-white">
                       {selectedItem.kind === "repo-readme"
                         ? selectedItem.updatedAt
                           ? new Date(selectedItem.updatedAt).toLocaleString()
@@ -636,7 +644,7 @@ export default function DocsPage() {
 
                 <div
                   ref={contentRef}
-                  className="docs-prose max-w-none text-[15px] leading-7 text-[#24292f]"
+                  className="docs-prose max-w-none text-[15px] leading-7 text-[#1A1A1A] dark:text-gray-100"
                   dangerouslySetInnerHTML={{
                     __html:
                       selectedItem.contentHtml ||
@@ -644,6 +652,39 @@ export default function DocsPage() {
                   }}
                 />
               </article>
+            ) : loading ? (
+              <section className="border border-[#E5E7EB] bg-white p-8 sm:p-12">
+                <div className="animate-pulse">
+                  <div className="h-3 w-28 bg-[#E5E7EB]" />
+                  <div className="mt-4 h-8 w-2/3 max-w-md bg-[#E5E7EB]" />
+                  <div className="mt-3 h-4 w-full max-w-2xl bg-[#F5F5F7]" />
+                  <div className="mt-2 h-4 w-4/5 max-w-xl bg-[#F5F5F7]" />
+                  <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    <div className="h-20 bg-[#F5F5F7]" />
+                    <div className="h-20 bg-[#F5F5F7]" />
+                  </div>
+                  <div className="mt-8 h-4 w-full bg-[#F5F5F7]" />
+                  <div className="mt-3 h-4 w-11/12 bg-[#F5F5F7]" />
+                  <div className="mt-3 h-4 w-3/4 bg-[#F5F5F7]" />
+                </div>
+              </section>
+            ) : !loading ? (
+              <EmptyState
+                title="No document selected"
+                description="Create a team document to start building your library."
+                icon={<FileText className="h-6 w-6" aria-hidden="true" />}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(true)}
+                    className="btn-primary inline-flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New article
+                  </button>
+                }
+                className="flex min-h-full flex-col items-center justify-center"
+              />
             ) : null}
           </main>
         </div>
@@ -659,7 +700,7 @@ export default function DocsPage() {
             }}
           />
 
-          <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-[#1c1c24]">
+          <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-[#1A1F2E]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 New document

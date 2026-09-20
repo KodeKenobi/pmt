@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import { SkeletonLine } from "@/components/ui/Skeleton";
 import { onRealtimeChange } from "@/lib/realtime-events";
 
 type Team = { id: string; name: string };
@@ -14,10 +15,16 @@ export default function TeamsAdminPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const res = await fetch("/api/teams");
-    if (res.ok) setTeams(await res.json());
+    setLoading(true);
+    try {
+      const res = await fetch("/api/teams");
+      if (res.ok) setTeams(await res.json());
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -105,7 +112,7 @@ export default function TeamsAdminPage() {
           <button
             type="submit"
             disabled={busy || !name.trim()}
-            className="rounded-lg bg-brand-600 px-5 py-2 text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="rounded-lg bg-brand-600 px-5 py-2 text-white hover:bg-indigo-700 disabled:opacity-50 dark:bg-indigo-600 dark:hover:bg-indigo-700"
           >
             {busy ? "Saving…" : "Add team"}
           </button>
@@ -115,21 +122,38 @@ export default function TeamsAdminPage() {
             {error}
           </div>
         )}
-        <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
-          {teams.map((t) => (
-            <li key={t.id}>
-              <Link
-                href={`/teams/${t.id}`}
-                className="flex items-center justify-between px-4 py-3 text-gray-900 transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800/50"
+        {loading ? (
+          <ul
+            className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900"
+            aria-label="Loading teams"
+          >
+            {Array.from({ length: 5 }).map((_, index) => (
+              <li
+                key={`team-skeleton-${index}`}
+                className="flex items-center justify-between px-4 py-4"
               >
-                <span className="font-medium">{t.name}</span>
-                <span className="text-xs text-indigo-600 dark:text-indigo-400">
-                  Manage members →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>{" "}
+                <SkeletonLine className="w-40" />
+                <SkeletonLine className="w-28" />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
+            {teams.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/teams/${t.id}`}
+                  className="flex items-center justify-between px-4 py-3 text-gray-900 transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-gray-800/50"
+                >
+                  <span className="font-medium">{t.name}</span>
+                  <span className="text-xs text-indigo-600 dark:text-indigo-400">
+                    Manage members →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </DashboardLayout>
   );

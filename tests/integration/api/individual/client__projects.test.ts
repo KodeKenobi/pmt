@@ -6,7 +6,7 @@ import * as routeModule from "@/app/api/client/projects/route";
 const params = {};
 const _payload = {
   id: "id-test",
-  email: "dev@e-t.co.za",
+  email: "dev@lighthousemediagroup.com",
   password: "P@ssword123",
   name: "Integration Test",
   title: "Integration Ticket",

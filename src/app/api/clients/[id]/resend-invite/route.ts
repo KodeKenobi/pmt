@@ -97,7 +97,10 @@ export async function POST(
   } catch (error) {
     console.error("Resend client invite error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error:
+          "We could not send the client email. Check the email settings and try again.",
+      },
       { status: 500 },
     );
   }

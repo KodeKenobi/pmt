@@ -35,7 +35,7 @@ const sampleData: Column[] = [
   {
     id: "todo",
     title: "To Do",
-    color: "#8B7355",
+    color: "#1B2A4A",
     tasks: [
       {
         id: "1",
@@ -63,7 +63,7 @@ const sampleData: Column[] = [
   {
     id: "progress",
     title: "In Progress",
-    color: "#6B8E23",
+    color: "#2ECC71",
     tasks: [
       {
         id: "3",
@@ -80,7 +80,7 @@ const sampleData: Column[] = [
   {
     id: "review",
     title: "Review",
-    color: "#CD853F",
+    color: "#3498DB",
     tasks: [
       {
         id: "4",
@@ -97,7 +97,7 @@ const sampleData: Column[] = [
   {
     id: "done",
     title: "Done",
-    color: "#556B2F",
+    color: "#1B2A4A",
     tasks: [
       {
         id: "5",

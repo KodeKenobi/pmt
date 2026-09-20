@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Get clients error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "We could not load clients. Please refresh and try again." },
       { status: 500 },
     );
   }
@@ -126,24 +126,27 @@ export async function POST(request: NextRequest) {
 
     const { name, email, isInvited = false } = await request.json();
     const normalizedEmail =
-      typeof email === "string" ? email.trim().toLowerCase() : "";
+      typeof email === "string" ? email.trim().toLowerCase() : null;
 
-    if (!name || !normalizedEmail) {
+    if (!name) {
       return NextResponse.json(
-        { error: "Name and email are required" },
+        { error: "Name is required" },
         { status: 400 },
       );
     }
 
-    const existingClient = await db.client.findUnique({
-      where: { email: normalizedEmail },
-    });
+    // Only check for duplicate if email is provided
+    if (normalizedEmail) {
+      const existingClient = await db.client.findUnique({
+        where: { email: normalizedEmail },
+      });
 
-    if (existingClient) {
-      return NextResponse.json(
-        { error: "Client already exists" },
-        { status: 400 },
-      );
+      if (existingClient) {
+        return NextResponse.json(
+          { error: "Client already exists" },
+          { status: 400 },
+        );
+      }
     }
 
     const client = await db.client.create({
@@ -156,7 +159,9 @@ export async function POST(request: NextRequest) {
 
     let warning: string | null = null;
 
-    if (isInvited) {
+    if (isInvited && !normalizedEmail) {
+      warning = "Client created but not invited (email required for invitations)";
+    } else if (isInvited && normalizedEmail) {
       try {
         const appBaseUrl = resolveAppBaseUrl(request.url);
         const inviteToken = crypto.randomBytes(32).toString("hex");
@@ -203,7 +208,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create client error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "We could not create this client. Please try again." },
       { status: 500 },
     );
   }

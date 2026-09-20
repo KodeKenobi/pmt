@@ -78,7 +78,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden bg-white px-4 py-3 dark:bg-[#1c1c24]",
+        "relative overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-700 dark:bg-gray-800",
         className,
       )}
     >

@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmptyState from "@/components/EmptyState";
 import { OverviewMetricStrip } from "@/components/OverviewMetricStrip";
 import { cn } from "@/lib/utils";
 import { onRealtimeChange } from "@/lib/realtime-events";
+import { ListTodo } from "lucide-react";
 
 interface ClientProject {
   id: string;
@@ -201,7 +203,7 @@ export default function ClientDashboardPage() {
               {projects.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1c1c24]"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -246,16 +248,13 @@ export default function ClientDashboardPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-brand-600 dark:border-gray-700" />
             </div>
           ) : tickets.length === 0 ? (
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] py-14 text-center shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
-              <p className="text-gray-900 dark:text-white font-medium mb-1">
-                No tickets yet
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tickets will appear here once your team assigns them to you.
-              </p>
-            </div>
+            <EmptyState
+              title="No tickets yet"
+              description="Tickets will appear here once your team assigns them to you."
+              icon={<ListTodo className="h-6 w-6" aria-hidden="true" />}
+            />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-card dark:border-gray-800 dark:bg-[#1c1c24]">
+            <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-card dark:border-gray-800 dark:bg-[#1A1F2E]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--border)] dark:border-gray-800">

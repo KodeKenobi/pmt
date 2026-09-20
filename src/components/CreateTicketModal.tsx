@@ -558,7 +558,7 @@ export default function CreateTicketModal({
                 searchPlaceholder="Search teams"
                 className="w-full"
                 triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
               />
             </div>
           )}
@@ -591,7 +591,7 @@ export default function CreateTicketModal({
                   searchPlaceholder="Search assignees"
                   className="w-full"
                   triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               )}
             </div>
@@ -623,7 +623,7 @@ export default function CreateTicketModal({
                 searchable={safeSprints.length > 8}
                 searchPlaceholder="Search sprints"
                 triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
               />
               {isLoadingSprints ? (
                 <SkeletonDropdown className="mt-2 w-full rounded-none" />
@@ -669,7 +669,7 @@ export default function CreateTicketModal({
                   searchPlaceholder="Search clients"
                   className="w-full"
                   triggerClassName="rounded-none border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               )}
             </div>
@@ -707,7 +707,7 @@ export default function CreateTicketModal({
                   searchPlaceholder="Search projects"
                   className="w-full"
                   triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               )}
               {selectedProject && selectedProjectRepos.length > 0 ? (
@@ -776,7 +776,7 @@ export default function CreateTicketModal({
                   }))}
                   className="w-full"
                   triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               </div>
 
@@ -792,7 +792,7 @@ export default function CreateTicketModal({
                   options={workTypeOptions}
                   className="w-full"
                   triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               </div>
 
@@ -811,7 +811,7 @@ export default function CreateTicketModal({
                   }))}
                   className="w-full"
                   triggerClassName="rounded-none border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:border-brand-500 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                  menuClassName="bg-white text-gray-900 dark:bg-[#0f1116] dark:text-slate-100"
+                  menuClassName="bg-white text-gray-900 dark:bg-[#0F1419] dark:text-slate-100"
                 />
               </div>
             </div>

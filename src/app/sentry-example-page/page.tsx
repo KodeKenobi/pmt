@@ -137,12 +137,12 @@ export default function Page() {
         }
 
         a {
-          color: #6341F0;
+          color: #1B2A4A;
           text-decoration: underline;
           cursor: pointer;
 
           @media (prefers-color-scheme: dark) {
-            color: #B3A1FF;
+            color: #3498DB;
           }
         }
 
@@ -150,7 +150,7 @@ export default function Page() {
           border-radius: 8px;
           color: white;
           cursor: pointer;
-          background-color: #553DB8;
+          background-color: #0F1E38;
           border: none;
           padding: 0;
           margin-top: 4px;
@@ -162,8 +162,8 @@ export default function Page() {
             font-size: 20px;
             font-weight: bold;
             line-height: 1;
-            background-color: #7553FF;
-            border: 1px solid #553DB8;
+            background-color: #1B2A4A;
+            border: 1px solid #0F1E38;
             transform: translateY(-4px);
           }
 
@@ -188,13 +188,13 @@ export default function Page() {
 
         .description {
           text-align: center;
-          color: #6E6C75;
+          color: #6B7280;
           max-width: 500px;
           line-height: 1.5;
           font-size: 20px;
 
           @media (prefers-color-scheme: dark) {
-            color: #A49FB5;
+            color: #A0A0A0;
           }
         }
 
@@ -207,9 +207,9 @@ export default function Page() {
           border-radius: 8px;
           font-size: 20px;
           line-height: 1;
-          background-color: #00F261;
-          border: 1px solid #00BF4D;
-          color: #181423;
+          background-color: #2ECC71;
+          border: 1px solid #2ECC71;
+          color: #0F1419;
         }
 
         .success_placeholder {
@@ -218,11 +218,11 @@ export default function Page() {
 
         .connectivity-error {
           padding: 12px 16px;
-          background-color: #E50045;
+          background-color: #E74C3C;
           border-radius: 8px;
           width: 500px;
           color: #FFFFFF;
-          border: 1px solid #A80033;
+          border: 1px solid #E74C3C;
           text-align: center;
           margin: 0;
         }
