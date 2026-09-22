@@ -53,10 +53,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error("Email and password are required");
     }
 
+    // First, authenticate with Supabase
+    const { data: supabaseData, error: supabaseError } =
+      await supabaseClient.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+    if (supabaseError || !supabaseData.session?.access_token) {
+      throw new Error(supabaseError?.message || "Login failed");
+    }
+
+    // Then, exchange the access token for a session on our backend
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail, password }),
+      body: JSON.stringify({ accessToken: supabaseData.session.access_token }),
     });
 
     if (!response.ok) {
