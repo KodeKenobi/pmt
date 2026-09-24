@@ -61,6 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
     if (supabaseError || !supabaseData.session?.access_token) {
+      console.error("Supabase login failed", {
+        status: supabaseError?.status,
+        code: supabaseError?.code,
+        message: supabaseError?.message,
+      });
       throw new Error(supabaseError?.message || "Login failed");
     }
 
@@ -72,7 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({}));
+      console.error("Backend session exchange failed", {
+        status: response.status,
+        error,
+      });
       throw new Error(error.error || "Login failed");
     }
 

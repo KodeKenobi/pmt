@@ -20,6 +20,11 @@ export async function POST(request: NextRequest) {
       await supabaseAdmin.auth.getUser(accessToken);
 
     if (supabaseError || !supabaseData.user?.email) {
+      console.error("Supabase getUser failed during login exchange", {
+        status: supabaseError?.status,
+        code: supabaseError?.code,
+        message: supabaseError?.message,
+      });
       return NextResponse.json(
         { error: "Invalid or expired sign-in link" },
         { status: 401 },
@@ -30,6 +35,7 @@ export async function POST(request: NextRequest) {
     const user = await getUserByEmail(email);
 
     if (!user) {
+      console.error("Login rejected: no matching app user", { email });
       return NextResponse.json(
         {
           error:
